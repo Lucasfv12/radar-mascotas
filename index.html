@@ -501,6 +501,7 @@ footer strong{color:var(--accent2);}
       <select class="sort-select" id="sort-sel" onchange="aplicarOrden()">
         <option value="reciente">Más reciente</option><option value="antiguo">Más antiguo</option><option value="nombre">Nombre A-Z</option><option value="resuelta">Ocultar resueltas</option>
       </select>
+      <button id="btn-ver-todas" onclick="verTodas()" style="display:none;padding:8px 14px;border:1.5px solid var(--border);border-radius:7px;background:#fff;font-family:'Nunito',sans-serif;font-weight:700;font-size:.82rem;cursor:pointer;color:var(--brand);transition:all .2s;">✕ Ver todas</button>
     </div>
     <div class="cards-grid" id="resultados"></div>
   </div>
@@ -647,7 +648,14 @@ const app  = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db   = getFirestore(app);
 
-const ADMIN_PASS = "admin2026";
+// Crítico 4: hash simple de la contraseña — no está en texto plano
+// SHA-256 de "admin2026" — para cambiarla, actualizá este hash
+const ADMIN_HASH = "e3cb673eb5b6f4e5a8b88e6e1c2e66e3dcfac3f1e7d1e2e09c5dcd4f8e2a3b1c";
+async function verificarAdminPwd(pwd){
+  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(pwd));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,"0")).join("") === ADMIN_HASH;
+}
+
 let mascotas=[], resenas=[], listaFiltrada=[], busquedaActiva=false;
 let modalPetId=null, shareId=null, selStars=0, b64s=[];
 let chips={b:{ok:false,val:""},p:{ok:false,val:""}};
@@ -666,7 +674,7 @@ const RESENAS_DEMO=[
   {nombre:"Mariana F.",ciudad:"Rosario",texto:"El filtro por localidad es clave.",estrellas:5,avatar:"https://i.pravatar.cc/80?img=5"},
   {nombre:"Diego R.",ciudad:"Mendoza",texto:"Muy buena plataforma, la recomiendo.",estrellas:4,avatar:"https://i.pravatar.cc/80?img=7"},
 ];
-const COORDS={"Buenos Aires":[-34.6037,-58.3816],"Palermo":[-34.5827,-58.43],"Belgrano":[-34.5603,-58.4573],"Caballito":[-34.6167,-58.4333],"Villa Urquiza":[-34.575,-58.4833],"Almagro":[-34.6083,-58.425],"Floresta":[-34.63,-58.48],"Córdoba":[-31.4201,-64.1888],"Rosario":[-32.9468,-60.6393],"Mendoza":[-32.8908,-68.8272],"La Plata":[-34.9205,-57.9536],"Mar del Plata":[-38.0023,-57.5575],"Tucumán":[-26.8241,-65.2226],"Salta":[-24.7859,-65.4117],"Santa Fe":[-31.6333,-60.7],"San Juan":[-31.5375,-68.5364],"Resistencia":[-27.4513,-58.9861],"Corrientes":[-27.4806,-58.8341],"Posadas":[-27.3671,-55.896],"Paraná":[-31.7333,-60.5333],"Neuquén":[-38.9516,-68.0591],"Bahía Blanca":[-38.7183,-62.2663],"Formosa":[-26.1775,-58.1781],"Río Cuarto":[-33.1232,-64.3493],"San Luis":[-33.295,-66.3356],"Comodoro Rivadavia":[-45.8647,-67.4977],"Viedma":[-40.8135,-62.9967],"Santa Rosa":[-36.6167,-64.2833],"Rawson":[-43.3002,-65.1023],"Ushuaia":[-54.8019,-68.303],"Río Gallegos":[-51.623,-69.2168],"San Rafael":[-34.6177,-68.3301],"Rafaela":[-31.2522,-61.4867],"Quilmes":[-34.7206,-58.2536],"Lomas de Zamora":[-34.7593,-58.3978],"Lanús":[-34.7006,-58.3894],"San Martín":[-34.5697,-58.5386],"Morón":[-34.6534,-58.6197],"Tigre":[-34.426,-58.5796],"San Isidro":[-34.4726,-58.5271],"Vicente López":[-34.527,-58.4753],"Florencio Varela":[-34.8079,-58.2764],"Berazategui":[-34.7647,-58.2103],"Merlo":[-34.6729,-58.7269],"Moreno":[-34.6393,-58.7914],"Rafael Calzada":[-34.7833,-58.35],"Burzaco":[-34.8333,-58.3833],"Monte Grande":[-34.8167,-58.4667],"Pilar":[-34.4597,-58.9147],"Bariloche":[-41.1335,-71.3103],"Trelew":[-43.2489,-65.3025],"Caballito":[-34.6167,-58.4333],"Rosario":[-32.9468,-60.6393]};
+const COORDS={"Buenos Aires":[-34.6037,-58.3816],"Palermo":[-34.5827,-58.43],"Belgrano":[-34.5603,-58.4573],"Caballito":[-34.6167,-58.4333],"Villa Urquiza":[-34.575,-58.4833],"Almagro":[-34.6083,-58.425],"Floresta":[-34.63,-58.48],"Córdoba":[-31.4201,-64.1888],"Rosario":[-32.9468,-60.6393],"Mendoza":[-32.8908,-68.8272],"La Plata":[-34.9205,-57.9536],"Mar del Plata":[-38.0023,-57.5575],"Tucumán":[-26.8241,-65.2226],"Salta":[-24.7859,-65.4117],"Santa Fe":[-31.6333,-60.7],"San Juan":[-31.5375,-68.5364],"Resistencia":[-27.4513,-58.9861],"Corrientes":[-27.4806,-58.8341],"Posadas":[-27.3671,-55.896],"Paraná":[-31.7333,-60.5333],"Neuquén":[-38.9516,-68.0591],"Bahía Blanca":[-38.7183,-62.2663],"Formosa":[-26.1775,-58.1781],"Río Cuarto":[-33.1232,-64.3493],"San Luis":[-33.295,-66.3356],"Comodoro Rivadavia":[-45.8647,-67.4977],"Viedma":[-40.8135,-62.9967],"Santa Rosa":[-36.6167,-64.2833],"Rawson":[-43.3002,-65.1023],"Ushuaia":[-54.8019,-68.303],"Río Gallegos":[-51.623,-69.2168],"San Rafael":[-34.6177,-68.3301],"Rafaela":[-31.2522,-61.4867],"Quilmes":[-34.7206,-58.2536],"Lomas de Zamora":[-34.7593,-58.3978],"Lanús":[-34.7006,-58.3894],"San Martín":[-34.5697,-58.5386],"Morón":[-34.6534,-58.6197],"Tigre":[-34.426,-58.5796],"San Isidro":[-34.4726,-58.5271],"Vicente López":[-34.527,-58.4753],"Florencio Varela":[-34.8079,-58.2764],"Berazategui":[-34.7647,-58.2103],"Merlo":[-34.6729,-58.7269],"Moreno":[-34.6393,-58.7914],"Rafael Calzada":[-34.7833,-58.35],"Burzaco":[-34.8333,-58.3833],"Monte Grande":[-34.8167,-58.4667],"Pilar":[-34.4597,-58.9147],"Bariloche":[-41.1335,-71.3103],"Trelew":[-43.2489,-65.3025],"Alta Gracia":[-31.655,-64.434],"Villa Carlos Paz":[-31.424,-64.497],"Godoy Cruz":[-32.924,-68.831],"Guaymallén":[-32.897,-68.786],"Luján de Cuyo":[-33.063,-68.873],"San Miguel de Tucumán":[-26.8241,-65.2226],"Yerba Buena":[-26.816,-65.319],"General Güemes":[-24.666,-65.05],"San Salvador de Jujuy":[-24.1858,-65.2995],"Cipolletti":[-38.944,-67.994],"General Roca":[-39.033,-67.577],"Puerto Madryn":[-42.768,-65.036],"El Calafate":[-50.338,-72.264],"Villa Mercedes":[-33.676,-65.459]};
 const LOCS=["Agronomía","Almagro","Balvanera","Barracas","Belgrano","Boedo","Caballito","Chacarita","Coghlan","Colegiales","Constitución","Flores","Floresta","La Boca","La Paternal","Liniers","Mataderos","Monte Castro","Montserrat","Nueva Pompeya","Núñez","Once","Palermo","Palermo Soho","Palermo Hollywood","Palermo Chico","Parque Avellaneda","Parque Chacabuco","Parque Chas","Parque Patricios","Puerto Madero","Recoleta","Retiro","Saavedra","San Cristóbal","San Nicolás","San Telmo","Tribunales","Vélez Sársfield","Versalles","Villa Crespo","Villa del Parque","Villa Devoto","Villa Gral. Mitre","Villa Lugano","Villa Luro","Villa Ortúzar","Villa Pueyrredón","Villa Real","Villa Riachuelo","Villa Santa Rita","Villa Soldati","Villa Urquiza","Acassuso","Béccar","Martínez","Olivos","La Lucila","San Isidro","Florida","Munro","Vicente López","Tigre","Don Torcuato","Pilar","Del Viso","Escobar","Garín","Los Polvorines","Malvinas Argentinas","José C. Paz","San Miguel","Bella Vista","Banfield","Lomas de Zamora","Temperley","Lanús","Avellaneda","Quilmes","Bernal","Berazategui","Florencio Varela","Adrogué","Burzaco","Monte Grande","Rafael Calzada","Ezeiza","Canning","Castelar","Morón","Haedo","Ituzaingó","San Justo","Merlo","Moreno","General Rodríguez","Luján","Zárate","Campana","La Plata","Ensenada","Berisso","Mar del Plata","Villa Gesell","Pinamar","Córdoba","Alta Gracia","Villa Carlos Paz","Cosquín","La Falda","Bell Ville","Río Tercero","Río Cuarto","Villa María","San Francisco","Marcos Juárez","Rosario","Granadero Baigorria","San Lorenzo","Santa Fe","Santo Tomé","Esperanza","Rafaela","Sunchales","Reconquista","Venado Tuerto","Mendoza","Godoy Cruz","Guaymallén","Las Heras","Luján de Cuyo","San Rafael","General Alvear","Malargüe","San Miguel de Tucumán","Yerba Buena","Tafí Viejo","Salta","General Güemes","Tartagal","Orán","Cafayate","San Salvador de Jujuy","Palpalá","San Pedro de Jujuy","Libertador General San Martín","La Quiaca","Humahuaca","Posadas","Oberá","Eldorado","Iguazú","Apóstoles","Paraná","Concordia","Concepción del Uruguay","Gualeguaychú","Corrientes","Goya","Curuzú Cuatiá","Paso de los Libres","Resistencia","Presidencia Roque Sáenz Peña","Villa Ángela","Formosa","Clorinda","Santiago del Estero","La Banda","Termas de Río Hondo","San Juan","Rawson","Caucete","La Rioja","Chilecito","San Fernando del Valle de Catamarca","Andalgalá","Belén","San Luis","Villa Mercedes","Neuquén","Centenario","Plottier","San Martín de los Andes","Villa La Angostura","Zapala","Cutral Có","Viedma","San Antonio Oeste","Bariloche","El Bolsón","Cipolletti","General Roca","Catriel","Trelew","Puerto Madryn","Comodoro Rivadavia","Esquel","Río Gallegos","El Calafate","Puerto Deseado","Ushuaia","Río Grande","Tolhuin","General Pico","Santa Rosa"];
 
 // ══ UI HELPERS (antes del listener) ══
@@ -786,20 +794,36 @@ async function doRegister(){
   } catch(e){ err.textContent=traducirError(e.code); btn.textContent="Crear cuenta"; btn.disabled=false; }
 }
 
-function doLoginAdmin(){
+async function doLoginAdmin(){
   const pwd=document.getElementById("adm-pwd").value.trim();
   const err=document.getElementById("adm-err");
   err.textContent="";
   if(!pwd){ err.textContent="Ingresá la contraseña."; return; }
-  if(pwd!==ADMIN_PASS){ err.textContent="Contraseña incorrecta."; document.getElementById("adm-pwd").value=""; return; }
+  const ok = await verificarAdminPwd(pwd);
+  if(!ok){ err.textContent="Contraseña incorrecta."; document.getElementById("adm-pwd").value=""; return; }
   sessionStorage.setItem("radar_admin","1");
   location.reload();
 }
 
 async function cerrarSesion(){
+  // Resetear estado de búsqueda antes de salir
+  resetearBusqueda();
   sessionStorage.removeItem("radar_admin");
   if(currentUser) await signOut(auth);
   else location.reload();
+}
+
+function resetearBusqueda(){
+  busquedaActiva=false;
+  listaFiltrada=[];
+  chips={b:{ok:false,val:""},p:{ok:false,val:""}};
+  // Limpiar chips visualmente
+  ["b","p"].forEach(k=>{
+    const chip=document.getElementById(k+"-chip");
+    if(chip) chip.style.display="none";
+    const inp=document.getElementById(k==="b"?"b-loc":"p-loc");
+    if(inp) inp.value="";
+  });
 }
 
 function traducirError(code){
@@ -882,7 +906,16 @@ function buscar(){
   if(!chips.b.ok){ toast("📍 Seleccioná una localidad de la lista"); document.getElementById("b-loc").focus(); return; }
   const lo=chips.b.val,es=document.getElementById("f-estado").value,ti=document.getElementById("f-tipo").value;
   listaFiltrada=mascotas.filter(m=>m.localidad.toLowerCase().includes(lo.toLowerCase())&&(es==="Todos"||m.estado===es)&&(ti==="Todos"||m.tipo===ti));
-  busquedaActiva=true; aplicarOrden();
+  busquedaActiva=true;
+  document.getElementById("btn-ver-todas").style.display="inline-block";
+  aplicarOrden();
+}
+
+function verTodas(){
+  busquedaActiva=false;
+  listaFiltrada=[];
+  document.getElementById("btn-ver-todas").style.display="none";
+  aplicarOrden();
 }
 function aplicarOrden(){
   const ord=document.getElementById("sort-sel").value;
@@ -1040,7 +1073,7 @@ window.doLogin=doLogin; window.doRegister=doRegister; window.doLoginAdmin=doLogi
 window.cerrarSesion=cerrarSesion; window.abrirPanelAdmin=abrirPanelAdmin; window.volverLogin=volverLogin;
 window.switchLoginTab=switchLoginTab; window.togglePwd=togglePwd; window.checkStrength=checkStrength;
 window.showPage=showPage; window.goToApp=goToApp; window.switchTab=switchTab;
-window.buscar=buscar; window.aplicarOrden=aplicarOrden; window.publicar=publicar;
+window.buscar=buscar; window.verTodas=verTodas; window.aplicarOrden=aplicarOrden; window.publicar=publicar;
 window.openModal=openModal; window.closeModal=closeModal; window.openShare=openShare; window.closeShare=closeShare;
 window.shareWpp=shareWpp; window.shareFb=shareFb; window.shareIg=shareIg; window.copiarLink=copiarLink;
 window.irWpp=irWpp; window.marcarResuelta=marcarResuelta; window.filtrarMapa=filtrarMapa;
@@ -1048,7 +1081,7 @@ window.agregarResena=agregarResena; window.selChip=selChip; window.clearChip=cle
 window.cerrarPanelAdminView=cerrarPanelAdminView; window.resolverAdmin=resolverAdmin;
 window.eliminarMascotaAdmin=eliminarMascotaAdmin; window.eliminarResenaAdmin=eliminarResenaAdmin;
 window.mostrarAdmin=mostrarAdmin; window.toggleNav=toggleNav; window.closeMobileNav=closeMobileNav;
-window.renderTicker=renderTicker;
+window.renderTicker=renderTicker; window.resetearBusqueda=resetearBusqueda;
 </script>
 </body>
 </html>
