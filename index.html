@@ -438,8 +438,8 @@ footer strong{color:var(--accent2);}
     <span class="nav-user" id="nav-user-name"></span>
     <a href="#" onclick="showPage('main');return false" id="nav-main">Inicio</a>
     <a href="#" onclick="showPage('info');return false" id="nav-info">Cómo funciona</a>
-    <a href="#" onclick="cerrarSesion();return false" style="color:rgba(255,255,255,.5);font-size:.8rem;">Salir</a>
     <a href="#" class="cta" onclick="showPage('main');setTimeout(()=>switchTab('publicar'),300);return false">Publicar</a>
+    <a href="#" onclick="cerrarSesion();return false" style="color:rgba(255,255,255,.45);font-size:.8rem;border:1px solid rgba(255,255,255,.15);border-radius:7px;">Salir</a>
   </div>
   <button class="nav-hamburger" id="hamburger" onclick="toggleNav()"><span></span><span></span><span></span></button>
 </nav>
@@ -1121,11 +1121,16 @@ async function marcarResuelta(id, nombre){
 // ══════════════════════════
 // MODAL
 // ══════════════════════════
+// ── scroll lock centralizado ──
+let _overlaysOpen=0;
+function lockScroll(){  _overlaysOpen++; document.body.style.overflow="hidden"; }
+function unlockScroll(){ _overlaysOpen=Math.max(0,_overlaysOpen-1); if(_overlaysOpen===0) document.body.style.overflow=""; }
+
 function openModal(id){
   const m = mascotas.find(x=>x.id===id);
   if(!m) return;
   modalPetId = id;
-  document.body.style.overflow="hidden";
+  lockScroll();
   document.getElementById("m-imgs").innerHTML = m.fotos.map(f=>`<img class="modal-img" src="${f}" onerror="this.src='https://placehold.co/300x200/4A7C59/fff?text=${encodeURIComponent(m.tipo)}'"> `).join("");
   document.getElementById("m-badges").innerHTML = `<span class="badge badge-${m.resuelta?"resuelta":m.estado.toLowerCase()}">${m.resuelta?"✅ Resuelta":m.estado}</span><span class="badge badge-tipo">${m.tipo}</span>`;
   document.getElementById("m-name").textContent = m.nombre;
@@ -1141,7 +1146,12 @@ function openModal(id){
   document.getElementById("m-share").onclick = ()=>{ closeModal(); openShare(id); };
   document.getElementById("modal").classList.add("open");
 }
-function closeModal(){ document.getElementById("modal").classList.remove("open"); document.body.style.overflow=""; modalPetId=null; }
+function closeModal(){
+  if(!document.getElementById("modal").classList.contains("open")) return;
+  document.getElementById("modal").classList.remove("open");
+  unlockScroll();
+  modalPetId=null;
+}
 document.getElementById("modal").addEventListener("click",e=>{ if(e.target===document.getElementById("modal")) closeModal(); });
 
 function irWpp(contacto,nombre,localidad){
@@ -1156,12 +1166,17 @@ function irWpp(contacto,nombre,localidad){
 // ══════════════════════════
 function openShare(id){
   shareId=id;
-  document.body.style.overflow="hidden";
+  lockScroll();
   const link=`${location.origin}${location.pathname}#aviso-${id}`;
   document.getElementById("share-link-txt").textContent=link;
   document.getElementById("shareOverlay").classList.add("open");
 }
-function closeShare(){ document.getElementById("shareOverlay").classList.remove("open"); document.body.style.overflow=""; shareId=null; }
+function closeShare(){
+  if(!document.getElementById("shareOverlay").classList.contains("open")) return;
+  document.getElementById("shareOverlay").classList.remove("open");
+  unlockScroll();
+  shareId=null;
+}
 function shareWpp(){ const m=mascotas.find(x=>x.id===shareId); if(!m)return; window.open(`https://wa.me/?text=${encodeURIComponent(`🐾 *${m.nombre}* — ${m.estado}\n📍 ${m.localidad}\n${location.href}`)}`,"_blank"); }
 function shareFb(){ window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(location.href)}`,"_blank"); }
 function shareIg(){ toast("📸 Copiá el link y pegalo en tu historia de Instagram"); }
@@ -1172,20 +1187,29 @@ function copiarLink(){ navigator.clipboard?.writeText(document.getElementById("s
 // ══════════════════════════
 const COLORES={Perdida:"#C0392B",Encontrada:"#27AE60"};
 function initMap(){
-  if(mapInstance) return;
+  if(mapInstance){
+    // Ya existe, solo forzar re-render por si el contenedor cambió de tamaño
+    mapInstance.invalidateSize();
+    return;
+  }
   mapInstance=L.map("map").setView([-34.6037,-58.3816],5);
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{attribution:"© OpenStreetMap"}).addTo(mapInstance);
   renderMapPins("Todas");
 }
 function renderMapPins(filtro="Todas"){
-  mapPins.forEach(p=>p.remove()); mapPins=[];
+  // Limpiar pins anteriores de forma segura
+  mapPins.forEach(p=>{ try{ p.remove(); }catch(e){} });
+  mapPins=[];
+  if(!mapInstance) return;
   mascotas.filter(m=>filtro==="Todas"||m.estado===filtro).forEach(m=>{
-    const base=COORDS[m.localidad]||[-34.6037,-58.3816];
+    const base=COORDS[m.localidad];
+    // Si no hay coordenadas para esa localidad, mostrar advertencia y skip
+    if(!base){ console.warn(`Sin coordenadas para: ${m.localidad}`); return; }
     const jit=[base[0]+(Math.random()-.5)*.04, base[1]+(Math.random()-.5)*.04];
     const col=COLORES[m.estado]||"#666";
     const ico=L.divIcon({className:"",html:`<div style="width:16px;height:16px;background:${col};border:2px solid #fff;border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,.3)"></div>`,iconSize:[16,16],iconAnchor:[8,8]});
-    const fallbackImg=m.tipo==="Gato"?"https://placehold.co/210x120/4A7C59/fff?text=Gato":"https://placehold.co/210x120/4A7C59/fff?text=Mascota";
-    const popup=`<div class="popup-body"><img class="popup-img" src="${m.fotos[0]}" onerror="this.src='${fallbackImg}'"><div class="popup-name">${m.nombre}</div><div class="popup-info">📍 ${m.localidad} · ${m.estado}</div>${m.raza?`<div class="popup-info">🐾 ${m.raza}</div>`:""}<button class="popup-btn" onclick="openModal('${m.id}');document.querySelector('.leaflet-popup-close-button').click()">Ver más</button></div>`;
+    const fallbackImg=m.tipo==="Gato"?"https://placehold.co/210x120/4A7C59/fff?text=Gato":m.tipo==="Loro"?"https://placehold.co/210x120/4A7C59/fff?text=Loro":m.tipo==="Conejo"?"https://placehold.co/210x120/4A7C59/fff?text=Conejo":"https://placehold.co/210x120/4A7C59/fff?text=Mascota";
+    const popup=`<div class="popup-body"><img class="popup-img" src="${m.fotos[0]}" onerror="this.src='${fallbackImg}'"><div class="popup-name">${m.nombre}</div><div class="popup-info">📍 ${m.localidad} · ${m.estado}</div>${m.raza?`<div class="popup-info">🐾 ${m.raza}</div>`:""}<button class="popup-btn" onclick="openModal('${m.id}');document.querySelector('.leaflet-popup-close-button')?.click()">Ver más</button></div>`;
     const pin=L.marker(jit,{icon:ico}).addTo(mapInstance).bindPopup(popup,{className:"custom-popup",maxWidth:220});
     mapPins.push(pin);
   });
@@ -1240,6 +1264,7 @@ async function agregarResena(){
 function actualizarStats(){
   document.getElementById("s-total").textContent = mascotas.length;
   document.getElementById("s-resueltas").textContent = mascotas.filter(m=>m.resuelta).length;
+  renderTicker();
 }
 
 // ══════════════════════════
@@ -1248,13 +1273,23 @@ function actualizarStats(){
 function toast(msg){ const t=document.getElementById("toast"); t.textContent=msg; t.classList.add("show"); setTimeout(()=>t.classList.remove("show"),3200); }
 
 // ══════════════════════════
-// TICKER
+// TICKER — dinámico
 // ══════════════════════════
-(function(){
-  const items=["🐾 Buscamos a Rocky en Palermo — Golden Retriever","✅ Milu encontrada en Villa Urquiza","🐱 Misu perdida en Rosario — Gata persa blanca","🔍 Nieve perdida en Rafael Calzada — Husky","❤️ Mascotas reunidas gracias a la comunidad","📢 Publicá tu aviso gratis — sin costo"];
+function renderTicker(){
   const t=document.getElementById("ticker");
+  t.innerHTML="";
+  // Usar mascotas reales si hay, si no usar items de ejemplo
+  let items=[];
+  if(mascotas.length){
+    items = mascotas.slice(0,8).map(m=>{
+      const ico = m.resuelta?"✅":m.estado==="Perdida"?"🔍":"📍";
+      return `${ico} ${m.nombre} ${m.resuelta?"encontrada":m.estado==="Perdida"?"perdida":"encontrada"} en ${m.localidad} — ${m.tipo}`;
+    });
+  } else {
+    items=["🐾 Buscamos a Rocky en Palermo — Golden Retriever","✅ Milu encontrada en Villa Urquiza","🐱 Misu perdida en Rosario — Gata persa blanca","🔍 Nieve perdida en Rafael Calzada — Husky","❤️ Mascotas reunidas gracias a la comunidad","📢 Publicá tu aviso gratis — sin costo"];
+  }
   [...items,...items].forEach(txt=>{ const d=document.createElement("div"); d.className="ticker-item"; d.innerHTML=`<div class="ticker-dot"></div>${txt}`; t.appendChild(d); });
-})();
+}
 
 // ══════════════════════════
 // PANEL ADMIN
@@ -1401,6 +1436,10 @@ window.agregarResena=agregarResena; window.selChip=selChip; window.clearChip=cle
 window.cerrarPanelAdminView=cerrarPanelAdminView; window.resolverAdmin=resolverAdmin;
 window.eliminarMascotaAdmin=eliminarMascotaAdmin; window.eliminarResenaAdmin=eliminarResenaAdmin;
 window.mostrarAdmin=mostrarAdmin; window.toggleNav=toggleNav; window.closeMobileNav=closeMobileNav;
+window.renderTicker=renderTicker;
+
+// Ticker inicial (con datos de ejemplo hasta que cargue Firebase)
+renderTicker();
 
 </script>
 </body>
