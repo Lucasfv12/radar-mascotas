@@ -764,36 +764,61 @@ async function cargarDemoSiVacio(){
 }
 
 // ══════════════════════════
+// UI HELPERS — deben estar ANTES del onAuthStateChanged
+// ══════════════════════════
+function mostrarLoginScreen(){
+  document.getElementById("db-loading").style.display = "none";
+  document.getElementById("login-screen").style.display = "flex";
+  setTimeout(()=>{ const el=document.getElementById("li-email"); if(el) el.focus(); }, 150);
+}
+
+function entrar(nombre){
+  document.getElementById("login-screen").style.display = "none";
+  document.getElementById("db-loading").style.display = "none";
+  document.body.style.overflow = "";
+  document.getElementById("nav-user-name").textContent = "👋 " + (nombre || "");
+  renderCards(mascotas);
+  renderResenas();
+  actualizarStats();
+}
+
+function setDbMsg(msg){ const el=document.getElementById("db-msg"); if(el) el.textContent=msg; }
+
+// ══════════════════════════
 // FIREBASE AUTH
 // ══════════════════════════
+// Timeout de seguridad: si Firebase no responde en 8 segundos, mostrar login igual
 onAuthStateChanged(auth, async user => {
-  const loading = document.getElementById("db-loading");
-  loading.style.display = "flex";
-  setDbMsg("Conectando con Firebase...");
+  try{
+    if(user){
+      // Usuario logueado con Firebase Auth
+      currentUser = user;
+      setDbMsg("Cargando datos...");
+      await cargarDemoSiVacio();
+      escucharMascotas();
+      await cargarResenas();
+      entrar(user.displayName || user.email);
 
-  if(user){
-    currentUser = user;
-    await cargarDemoSiVacio();
-    escucharMascotas();
-    await cargarResenas();
-    entrar(user.displayName || user.email);
-  } else {
-    currentUser = null;
-    // Verificar si es sesión de admin
-    const adminSess = sessionStorage.getItem("radar_admin");
-    if(adminSess){
+    } else if(sessionStorage.getItem("radar_admin")){
+      // Sesión de administrador
+      currentUser = null;
+      setDbMsg("Cargando datos...");
       await cargarDemoSiVacio();
       escucharMascotas();
       await cargarResenas();
       entrar("Administrador");
       setTimeout(mostrarAdmin, 200);
+
     } else {
-      loading.style.display = "none";
+      // No hay sesión → mostrar login
+      currentUser = null;
       mostrarLoginScreen();
     }
-  }
 
-  loading.style.display = "none";
+  } catch(e){
+    console.error("Error al inicializar:", e);
+    mostrarLoginScreen();
+  }
 });
 
 // ══════════════════════════
@@ -871,28 +896,6 @@ function traducirErrorFirebase(code){
   };
   return map[code] || "Error: " + code;
 }
-
-// ══════════════════════════
-// UI HELPERS
-// ══════════════════════════
-function mostrarLoginScreen(){
-  document.getElementById("db-loading").style.display = "none";
-  document.getElementById("login-screen").style.display = "flex";
-  // body.overflow sigue en hidden — el login ocupa toda la pantalla, no hace falta scroll
-  setTimeout(()=>{ const el=document.getElementById("li-email"); if(el) el.focus(); }, 150);
-}
-
-function entrar(nombre){
-  document.getElementById("login-screen").style.display = "none";
-  document.getElementById("db-loading").style.display = "none";
-  document.body.style.overflow = ""; // habilitar scroll recién cuando el usuario ya ingresó
-  document.getElementById("nav-user-name").textContent = "👋 " + (nombre || "");
-  renderCards(mascotas);
-  renderResenas();
-  actualizarStats();
-}
-
-function setDbMsg(msg){ const el=document.getElementById("db-msg"); if(el) el.textContent=msg; }
 
 function abrirPanelAdmin(){
   document.getElementById("user-login-panel").style.display = "none";
