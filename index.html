@@ -511,7 +511,7 @@ footer strong{color:var(--accent2);}
         <div class="field"><label>Nombre *</label><input type="text" id="p-nombre" placeholder="Ej: Luna"></div>
         <div class="field"><label>Tipo *</label><select id="p-tipo"><option value="">Seleccioná...</option><option value="Perro">Perro</option><option value="Gato">Gato</option><option value="Loro">Loro</option><option value="Conejo">Conejo</option><option value="Otro">Otro</option></select></div>
         <div class="field"><label>Estado *</label><select id="p-estado"><option value="">Seleccioná...</option><option value="Perdida">Perdida</option><option value="Encontrada">Encontrada</option></select></div>
-        <div class="field"><label>Edad (años)</label><input type="number" id="p-edad" placeholder="Ej: 3" min="0" max="30"></div>
+        <div class="field"><label>Edad (años)</label><input type="number" id="p-edad" placeholder="Ej: 3" min="0" max="30" step="1"></div>
         <div class="field"><label>Localidad *</label>
           <div class="ac-wrap"><input type="text" id="p-loc" placeholder="Escribí y seleccioná..." autocomplete="off"><div class="ac-list" id="p-ac"></div></div>
           <div class="loc-chip" id="p-chip"><span id="p-chip-txt"></span><button onclick="clearChip('p')">✕</button></div>
@@ -664,11 +664,11 @@ let chips={b:{ok:false,val:""},p:{ok:false,val:""}};
 let currentUser=null, mapInstance=null, mapPins=[], unsub=null;
 
 const MASCOTAS_DEMO=[
-  {nombre:"Rocky",edad:2,tipo:"Perro",estado:"Perdida",localidad:"Palermo",contacto:"11-1111-1111",fotos:["https://images.dog.ceo/breeds/retriever-golden/n02099601_3004.jpg"],desc:"Collar azul, muy amigable.",raza:"Golden Retriever",resuelta:false,publicadoPor:"demo",publicadoPorNombre:"Demo"},
-  {nombre:"Negrín",edad:5,tipo:"Perro",estado:"Encontrada",localidad:"Córdoba",contacto:"11-2222-2222",fotos:["https://images.dog.ceo/breeds/labrador/n02099712_4323.jpg"],desc:"Labrador negro, muy dócil.",raza:"Labrador negro",resuelta:false,publicadoPor:"demo",publicadoPorNombre:"Demo"},
-  {nombre:"Misu",edad:3,tipo:"Gato",estado:"Perdida",localidad:"Rosario",contacto:"11-3333-3333",fotos:["https://upload.wikimedia.org/wikipedia/commons/thumb/4/4d/Cat_November_2010-1a.jpg/800px-Cat_November_2010-1a.jpg"],desc:"Gata persa blanca, lleva collar rosa.",raza:"Persa blanca",resuelta:false,publicadoPor:"demo",publicadoPorNombre:"Demo"},
-  {nombre:"Nieve",edad:1,tipo:"Perro",estado:"Perdida",localidad:"Rafael Calzada",contacto:"11-4444-4444",fotos:["https://images.dog.ceo/breeds/husky/n02110185_10047.jpg"],desc:"Husky siberiano, ojos celestes.",raza:"Husky siberiano",resuelta:false,publicadoPor:"demo",publicadoPorNombre:"Demo"},
-  {nombre:"Canela",edad:1,tipo:"Gato",estado:"Perdida",localidad:"Caballito",contacto:"11-5555-5555",fotos:["https://upload.wikimedia.org/wikipedia/commons/thumb/b/bb/Kittyply_edit1.jpg/800px-Kittyply_edit1.jpg"],desc:"Gatita atigrada marrón, muy juguetona.",raza:"Atigrada marrón",resuelta:false,publicadoPor:"demo",publicadoPorNombre:"Demo"},
+  {nombre:"Rocky",edad:2,tipo:"Perro",estado:"Perdida",localidad:"Palermo",contacto:"11-1111-1111",fotos:["https://images.dog.ceo/breeds/retriever-golden/n02099601_3004.jpg"],desc:"Collar azul, muy amigable.",raza:"Golden Retriever",resuelta:false,publicadoPor:"demo",publicadoPorNombre:"Demo",fecha:"01/04/2026"},
+  {nombre:"Negrín",edad:5,tipo:"Perro",estado:"Encontrada",localidad:"Córdoba",contacto:"11-2222-2222",fotos:["https://images.dog.ceo/breeds/labrador/n02099712_4323.jpg"],desc:"Labrador negro, muy dócil.",raza:"Labrador negro",resuelta:false,publicadoPor:"demo",publicadoPorNombre:"Demo",fecha:"31/03/2026"},
+  {nombre:"Misu",edad:3,tipo:"Gato",estado:"Perdida",localidad:"Rosario",contacto:"11-3333-3333",fotos:["https://upload.wikimedia.org/wikipedia/commons/thumb/4/4d/Cat_November_2010-1a.jpg/800px-Cat_November_2010-1a.jpg"],desc:"Gata persa blanca, lleva collar rosa.",raza:"Persa blanca",resuelta:false,publicadoPor:"demo",publicadoPorNombre:"Demo",fecha:"02/04/2026"},
+  {nombre:"Nieve",edad:1,tipo:"Perro",estado:"Perdida",localidad:"Rafael Calzada",contacto:"11-4444-4444",fotos:["https://images.dog.ceo/breeds/husky/n02110185_10047.jpg"],desc:"Husky siberiano, ojos celestes.",raza:"Husky siberiano",resuelta:false,publicadoPor:"demo",publicadoPorNombre:"Demo",fecha:"03/04/2026"},
+  {nombre:"Canela",edad:1,tipo:"Gato",estado:"Perdida",localidad:"Caballito",contacto:"11-5555-5555",fotos:["https://upload.wikimedia.org/wikipedia/commons/thumb/b/bb/Kittyply_edit1.jpg/800px-Kittyply_edit1.jpg"],desc:"Gatita atigrada marrón, muy juguetona.",raza:"Atigrada marrón",resuelta:false,publicadoPor:"demo",publicadoPorNombre:"Demo",fecha:"03/04/2026"},
 ];
 const RESENAS_DEMO=[
   {nombre:"Laura M.",ciudad:"Buenos Aires",texto:"¡Encontré a mi gatita en menos de un día!",estrellas:5,avatar:"https://i.pravatar.cc/80?img=1"},
@@ -703,7 +703,16 @@ function entrar(nombre){
 // Bloquear scroll desde el inicio mientras Firebase responde
 document.body.style.overflow="hidden";
 
+// Timeout de seguridad: si Firebase no responde en 10 segundos, mostrar login igual
+const _fbTimeout = setTimeout(()=>{
+  if(document.getElementById("db-loading").style.display !== "none"){
+    console.warn("Firebase tardó demasiado, mostrando login.");
+    mostrarLoginScreen();
+  }
+}, 10000);
+
 onAuthStateChanged(auth, async user => {
+  clearTimeout(_fbTimeout);
   try{
     if(user){
       currentUser=user;
@@ -1048,8 +1057,14 @@ function actualizarStats(){
   renderTicker();
 }
 function renderTicker(){
-  const t=document.getElementById("ticker"); t.innerHTML="";
-  let items=mascotas.length?mascotas.slice(0,8).map(m=>`${m.resuelta?"✅":m.estado==="Perdida"?"🔍":"📍"} ${m.nombre} ${m.resuelta?"encontrada":m.estado==="Perdida"?"perdida":"encontrada"} en ${m.localidad} — ${m.tipo}`):["🐾 Buscamos a Rocky en Palermo","✅ Milu encontrada en Villa Urquiza","🐱 Misu perdida en Rosario","🔍 Nieve perdida en Rafael Calzada","❤️ Mascotas reunidas gracias a la comunidad"];
+  const t=document.getElementById("ticker");
+  // Solo re-renderizar si hay datos reales o el ticker está vacío
+  // Evita el salto visual de reemplazar items demo por reales mientras el ticker anima
+  if(mascotas.length===0 && t.children.length>0) return;
+  t.innerHTML="";
+  const items=mascotas.length
+    ? mascotas.slice(0,8).map(m=>`${m.resuelta?"✅":m.estado==="Perdida"?"🔍":"📍"} ${m.nombre} ${m.resuelta?"encontrada":m.estado==="Perdida"?"perdida":"encontrada"} en ${m.localidad} — ${m.tipo}`)
+    : ["🐾 Buscamos mascotas en toda Argentina","✅ Mascotas reunidas gracias a la comunidad","🐱 Publicá tu aviso gratis — sin costo","🔍 Buscá por localidad en el mapa"];
   [...items,...items].forEach(txt=>{ const d=document.createElement("div"); d.className="ticker-item"; d.innerHTML=`<div class="ticker-dot"></div>${txt}`; t.appendChild(d); });
 }
 function toast(msg){ const t=document.getElementById("toast"); t.textContent=msg; t.classList.add("show"); setTimeout(()=>t.classList.remove("show"),3200); }
