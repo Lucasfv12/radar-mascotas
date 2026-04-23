@@ -79,7 +79,7 @@ body{font-family:'Nunito',sans-serif;background:var(--fondo);color:var(--text);o
 #admin-login-panel{display:none;width:100%;max-width:360px;}
 
 /* ── NAV ── */
-nav{position:fixed;top:0;left:0;right:0;z-index:900;padding:0 32px;height:62px;display:flex;align-items:center;justify-content:space-between;transition:background .3s,box-shadow .3s;}
+nav{position:fixed;top:0;left:0;right:0;z-index:900;padding:0 32px;height:62px;display:flex;align-items:center;justify-content:space-between;transition:background .3s,box-shadow .3s;background:rgba(30,43,34,.55);backdrop-filter:blur(6px);}
 nav.scrolled{background:rgba(30,43,34,.97);backdrop-filter:blur(14px);box-shadow:0 2px 16px rgba(0,0,0,.35);}
 .nav-logo{font-family:'Playfair Display',serif;font-size:1.4rem;color:#fff;text-decoration:none;display:flex;align-items:center;gap:10px;}
 .nav-links{display:flex;gap:4px;align-items:center;}
@@ -567,7 +567,9 @@ footer strong{color:var(--accent2);}
   <div class="section-sub">Simple y gratuito en 6 pasos</div>
   <div class="how-grid">
     <div class="how-card"><div class="how-icon-wrap c1">📢</div><div class="how-num">1</div><h3>Publicá</h3><p>Subí fotos reales desde tu galería y describí a tu mascota.</p></div>
-    <div class="how-card"><div class="how-icon-wrap c2">🔍</div><div class="how-num">2</div><h3>Buscá</h3><p>Filtrá por tu localidad exacta entre 689 ciudades.</p></div>
+    <div class="how-card"><div class="how-icon-wrap c2">🔍</div><div class="how-num">2</div><h3>Buscá</h3><p>Filtrá por tu localidad exacta entre cientos de ciudades.</p></div>
+    <div class="how-card"><div class="how-icon-wrap c3">🗺️</div><div class="how-num">3</div><h3>Mapa</h3><p>Mirá todos los avisos cercanos en el mapa interactivo.</p></div>
+    <div class="how-card"><div class="how-icon-wrap c4">📲</div><div class="how-num">4</div><h3>Contactá</h3><p>Escribí directo por WhatsApp a quien publicó el aviso.</p></div>
     <div class="how-card"><div class="how-icon-wrap c5">🔁</div><div class="how-num">5</div><h3>Compartí</h3><p>Difundí en redes con un solo toque.</p></div>
     <div class="how-card"><div class="how-icon-wrap c6">🏠</div><div class="how-num">6</div><h3>¡Reunidos!</h3><p>Marcá como resuelta y dejá tu reseña.</p></div>
   </div>
@@ -729,6 +731,7 @@ onAuthStateChanged(auth, async user => {
 });
 
 // ══ FIRESTORE ══
+let _adminRefreshTimer=null;
 function escucharMascotas(){
   if(unsub) unsub();
   const q=query(collection(db,"mascotas"),orderBy("ts","desc"));
@@ -737,7 +740,12 @@ function escucharMascotas(){
     actualizarStats();
     if(!busquedaActiva){ listaFiltrada=[...mascotas]; aplicarOrden(); }
     if(mapInstance) renderMapPins(document.querySelector(".map-filter-btn.on")?.dataset.f||"Todas");
-    if(document.getElementById("adm-panel")) mostrarAdmin();
+    // Debounce: esperar 800ms antes de refrescar el panel admin
+    // para no interrumpir al admin si está scrolleando la tabla
+    if(document.getElementById("adm-panel")){
+      clearTimeout(_adminRefreshTimer);
+      _adminRefreshTimer=setTimeout(mostrarAdmin, 800);
+    }
   });
 }
 
@@ -806,8 +814,10 @@ async function doLoginAdmin(){
 }
 
 async function cerrarSesion(){
-  // Resetear estado de búsqueda antes de salir
+  // Resetear todo el estado antes de salir
   resetearBusqueda();
+  busquedaActiva=false;
+  if(unsub){ unsub(); unsub=null; }
   sessionStorage.removeItem("radar_admin");
   if(currentUser) await signOut(auth);
   else location.reload();
@@ -846,7 +856,21 @@ function checkStrength(pwd){ const bar=document.getElementById("pwd-strength"); 
 window.addEventListener("scroll",()=>document.getElementById("mainNav").classList.toggle("scrolled",window.scrollY>40));
 function toggleNav(){ document.getElementById("hamburger").classList.toggle("open"); document.getElementById("nav-mobile").classList.toggle("open"); }
 function closeMobileNav(){ document.getElementById("hamburger").classList.remove("open"); document.getElementById("nav-mobile").classList.remove("open"); }
-function showPage(page){ document.getElementById("page-main").style.display=page==="main"?"block":"none"; document.getElementById("page-info").style.display=page==="info"?"block":"none"; window.scrollTo({top:0,behavior:"smooth"}); }
+function showPage(page){
+  document.getElementById("page-main").style.display=page==="main"?"block":"none";
+  document.getElementById("page-info").style.display=page==="info"?"block":"none";
+  window.scrollTo({top:0,behavior:"smooth"});
+  // En página info el fondo es claro, el nav necesita estar siempre visible
+  const nav=document.getElementById("mainNav");
+  if(page==="info"){
+    nav.style.background="rgba(30,43,34,.97)";
+    nav.style.boxShadow="0 2px 16px rgba(0,0,0,.35)";
+  } else {
+    // En página main vuelve al comportamiento normal con scroll
+    nav.style.background="";
+    nav.style.boxShadow="";
+  }
+}
 function goToApp(t){ document.getElementById("app").scrollIntoView({behavior:"smooth"}); setTimeout(()=>switchTab(t),350); }
 function switchTab(t){
   ["buscar","publicar","mapa"].forEach(x=>{ document.getElementById("panel-"+x).classList.remove("active"); document.getElementById("tb-"+x).classList.remove("active"); });
@@ -896,6 +920,9 @@ async function publicar(){
     ["p-nombre","p-edad","p-contacto","p-raza","p-desc","p-loc"].forEach(id=>document.getElementById(id).value="");
     ["p-tipo","p-estado"].forEach(id=>document.getElementById(id).selectedIndex=0);
     clearChip("p"); b64s=[]; renderThumbs();
+    // Limpiar también el input de localidad por si quedó texto residual
+    document.getElementById("p-loc").value="";
+    document.getElementById("p-ac").style.display="none";
     toast("✅ ¡Mascota publicada!"); switchTab("buscar"); goToApp("buscar");
   } catch(e){ toast("❌ Error al publicar. Revisá tu conexión."); console.error(e); }
   btn.disabled=false; btn.textContent="Publicar mascota 🐾";
