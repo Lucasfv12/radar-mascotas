@@ -116,11 +116,8 @@ nav.scrolled{background:rgba(30,43,34,.97);backdrop-filter:blur(14px);box-shadow
 .btn-h2:hover{background:rgba(255,255,255,.08);}
 .hero-wave{position:absolute;bottom:-2px;left:0;right:0;z-index:3;}
 
-/* ── TICKER ── */
-.ticker-wrap{background:var(--brand);padding:10px 0;overflow:hidden;}
-.ticker-track{display:flex;gap:56px;animation:ticker 22s linear infinite;width:max-content;white-space:nowrap;}
-.ticker-item{color:rgba(255,255,255,.88);font-weight:700;font-size:.88rem;display:flex;align-items:center;gap:10px;}
-.ticker-dot{width:6px;height:6px;background:var(--accent2);border-radius:50%;flex-shrink:0;}
+
+
 
 /* ── STATS ── */
 .stats-section{background:var(--dark2);padding:36px 20px;display:flex;justify-content:center;flex-wrap:wrap;}
@@ -320,7 +317,6 @@ footer strong{color:var(--accent2);}
 @keyframes fadeD{from{opacity:0;transform:translateY(-20px)}to{opacity:1;transform:translateY(0)}}
 @keyframes fadeU{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
 @keyframes popIn{from{opacity:0;transform:scale(.85)}to{opacity:1;transform:scale(1)}}
-@keyframes ticker{0%{transform:translateX(0);}100%{transform:translateX(-50%);}}
 
 @media(max-width:600px){
   nav{padding:10px 16px;}.nav-links{display:none;}.nav-hamburger{display:flex;}
@@ -1037,20 +1033,7 @@ function actualizarStats(){
   document.getElementById("s-total").textContent=mascotas.length;
   document.getElementById("s-resueltas").textContent=mascotas.filter(m=>m.resuelta).length;
 }
-function renderTicker(){
-  const t=document.getElementById("ticker");
-  // Solo re-renderizar si hay datos reales o el ticker está vacío
-  // Evita el salto visual de reemplazar items demo por reales mientras el ticker anima
-  if(mascotas.length===0 && t.children.length>0) return;
-  t.innerHTML="";
-  const items=mascotas.length
-    ? mascotas.slice(0,8).map(m=>`${m.resuelta?"✅":m.estado==="Perdida"?"🔍":"📍"} ${m.nombre} ${m.resuelta?"encontrada":m.estado==="Perdida"?"perdida":"encontrada"} en ${m.localidad} — ${m.tipo}`)
-    : ["🐾 Buscamos mascotas en toda Argentina","✅ Mascotas reunidas gracias a la comunidad","🐱 Publicá tu aviso gratis — sin costo","🔍 Buscá por localidad en el mapa"];
-  [...items,...items].forEach(txt=>{ const d=document.createElement("div"); d.className="ticker-item"; d.innerHTML=`<div class="ticker-dot"></div>${txt}`; t.appendChild(d); });
-}
 function toast(msg){ const t=document.getElementById("toast"); t.textContent=msg; t.classList.add("show"); setTimeout(()=>t.classList.remove("show"),3200); }
-
-// ══ ADMIN ══
 function mostrarAdmin(){
   if(document.getElementById("adm-panel")) document.getElementById("adm-panel").remove();
   const total=mascotas.length,perdidas=mascotas.filter(m=>m.estado==="Perdida"&&!m.resuelta).length,resueltas=mascotas.filter(m=>m.resuelta).length,encontradas=mascotas.filter(m=>m.estado==="Encontrada"&&!m.resuelta).length;
@@ -1077,9 +1060,6 @@ function cerrarPanelAdminView(){ const p=document.getElementById("adm-panel"); i
 async function resolverAdmin(id){ try{ await updateDoc(doc(db,"mascotas",id),{resuelta:true}); toast("✅ Marcada como resuelta."); } catch(e){ toast("❌ Error al actualizar."); } }
 async function eliminarMascotaAdmin(id){ if(!confirm("¿Eliminar esta publicación?"))return; try{ await deleteDoc(doc(db,"mascotas",id)); toast("Publicación eliminada."); } catch(e){ toast("❌ Error al eliminar."); } }
 async function eliminarResenaAdmin(id){ if(!id||id==="undefined"){ toast("⚠️ Esta reseña es demo y no se puede eliminar."); return; } if(!confirm("¿Eliminar esta reseña?"))return; try{ await deleteDoc(doc(db,"resenas",id)); resenas=resenas.filter(r=>r.id!==id); renderResenas(); toast("Reseña eliminada."); if(document.getElementById("adm-panel")) mostrarAdmin(); } catch(e){ toast("❌ Error al eliminar."); } }
-
-// Ticker inicial mientras carga Firebase
-renderTicker();
 
 // Exponer al scope global
 window.doLogin=doLogin; window.doRegister=doRegister; window.doLoginAdmin=doLoginAdmin;
