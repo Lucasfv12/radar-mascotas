@@ -441,7 +441,7 @@ footer strong{color:var(--accent2);}
   <div class="nav-links">
     <span class="nav-user" id="nav-user-name"></span>
     <a href="#" onclick="showPage('main');return false">Inicio</a>
-    <a href="#" onclick="showPage('info');return false">Cómo funciona</a>
+    <a href="#" onclick="showPage('info');return false">Reseñas</a>
     <a href="#" class="cta" onclick="showPage('main');setTimeout(()=>switchTab('publicar'),300);return false">Publicar</a>
     <a href="#" onclick="cerrarSesion();return false" style="color:rgba(255,255,255,.45);font-size:.8rem;border:1px solid rgba(255,255,255,.15);border-radius:7px;">Salir</a>
   </div>
@@ -449,7 +449,7 @@ footer strong{color:var(--accent2);}
 </nav>
 <div class="nav-mobile" id="nav-mobile">
   <a href="#" onclick="showPage('main');closeMobileNav()">🔍 Buscar mascota</a>
-  <a href="#" onclick="showPage('info');closeMobileNav()">❓ Cómo funciona y Reseñas</a>
+  <a href="#" onclick="showPage('info');closeMobileNav()">⭐ Reseñas</a>
   <a href="#" onclick="showPage('main');setTimeout(()=>switchTab('publicar'),300);closeMobileNav()" style="background:var(--accent);color:#fff;">Publicar</a>
   <a href="#" onclick="cerrarSesion();closeMobileNav()" style="color:rgba(255,255,255,.5);">Salir</a>
 </div>
@@ -458,11 +458,8 @@ footer strong{color:var(--accent2);}
 <section class="hero">
   <div class="hero-bg"></div><div class="hero-orb orb1"></div><div class="hero-orb orb2"></div>
   <div class="hero-content">
-    <div class="hero-eyebrow">🐾 La red de mascotas de Argentina</div>
     <h1><em>RADAR</em></h1>
-    <p class="hero-sub" style="font-size:.88rem;letter-spacing:1px;color:rgba(255,255,255,.5);text-transform:uppercase;margin-bottom:4px;">Rastreo de Animales Desaparecidos con Alerta Regional</p>
-    <p class="hero-sub">Publicá, buscá y conectá con personas de toda Argentina. Mapa en vivo y compartir en redes.</p>
-    <div class="hero-urgente">🔍 Mascotas reportadas hoy en tu zona</div>
+    <p class="hero-sub">Encontrá o reportá mascotas perdidas en toda Argentina.</p>
     <div class="hero-btns">
       <button class="btn-h1" onclick="goToApp('buscar')">Buscar mascota</button>
       <button class="btn-h2" onclick="goToApp('publicar')">Publicar aviso</button>
@@ -470,10 +467,8 @@ footer strong{color:var(--accent2);}
   </div>
   <svg class="hero-wave" viewBox="0 0 1440 70" preserveAspectRatio="none"><path d="M0,35 C360,70 1080,0 1440,35 L1440,70 L0,70 Z" fill="#4A7C59"/></svg>
 </section>
-<div class="ticker-wrap"><div class="ticker-track" id="ticker"></div></div>
 <div class="stats-section">
   <div class="stat-box"><span class="stat-num" id="s-total">0</span><span class="stat-lbl">Publicaciones</span></div>
-  <div class="stat-box"><span class="stat-num">689</span><span class="stat-lbl">Localidades</span></div>
   <div class="stat-box"><span class="stat-num" id="s-resueltas">0</span><span class="stat-lbl">Reunidas ❤️</span></div>
 </div>
 <section id="app" class="app-section">
@@ -550,32 +545,13 @@ footer strong{color:var(--accent2);}
 </div>
 
 <div id="page-info" style="display:none;position:relative;z-index:1;">
-<section class="features-strip">
-  <div class="section-title">Todo en un solo lugar</div>
-  <div class="section-sub">Herramientas reales para reunir familias</div>
-  <div class="features-grid">
-    <div class="feature-card"><span class="feat-ico">🗺️</span><h3>Mapa en tiempo real</h3><p>Mirá todos los avisos con filtros por tipo y estado.</p></div>
-    <div class="feature-card"><span class="feat-ico">🔁</span><h3>Compartir en 1 toque</h3><p>WhatsApp, Facebook, Instagram.</p></div>
-    <div class="feature-card"><span class="feat-ico">✅</span><h3>Marcar como resuelta</h3><p>Cerrá el aviso cuando la mascota fue encontrada.</p></div>
-    <div class="feature-card"><span class="feat-ico">🔒</span><h3>Login seguro</h3><p>Tus datos protegidos con Firebase Authentication.</p></div>
-  </div>
-</section>
-<section class="how" id="como">
-  <div class="section-title">¿Cómo funciona?</div>
-  <div class="section-sub">Simple y gratuito en 6 pasos</div>
-  <div class="how-grid">
-    <div class="how-card"><div class="how-icon-wrap c1">📢</div><div class="how-num">1</div><h3>Publicá</h3><p>Subí fotos reales desde tu galería y describí a tu mascota.</p></div>
-    <div class="how-card"><div class="how-icon-wrap c2">🔍</div><div class="how-num">2</div><h3>Buscá</h3><p>Filtrá por tu localidad exacta entre cientos de ciudades.</p></div>
-    <div class="how-card"><div class="how-icon-wrap c3">🗺️</div><div class="how-num">3</div><h3>Mapa</h3><p>Mirá todos los avisos cercanos en el mapa interactivo.</p></div>
-    <div class="how-card"><div class="how-icon-wrap c4">📲</div><div class="how-num">4</div><h3>Contactá</h3><p>Escribí directo por WhatsApp a quien publicó el aviso.</p></div>
-    <div class="how-card"><div class="how-icon-wrap c5">🔁</div><div class="how-num">5</div><h3>Compartí</h3><p>Difundí en redes con un solo toque.</p></div>
-    <div class="how-card"><div class="how-icon-wrap c6">🏠</div><div class="how-num">6</div><h3>¡Reunidos!</h3><p>Marcá como resuelta y dejá tu reseña.</p></div>
-  </div>
-</section>
 <section class="reviews-section" id="resenas">
   <div class="section-title">Lo que dice la comunidad</div>
-  <div class="section-sub">Historias reales de personas que usaron la plataforma</div>
+  <div class="section-sub">Historias de personas que encontraron a su mascota</div>
   <div class="reviews-grid" id="reviews-grid"></div>
+  <div id="reviews-empty" style="display:none;text-align:center;padding:40px 20px;color:rgba(255,255,255,.35);font-size:.95rem;font-weight:600;">
+    Todavía no hay reseñas. ¡Sé el primero en contar tu experiencia!
+  </div>
   <div class="add-review-wrap"><div class="add-review-card">
     <h3>Dejá tu reseña</h3>
     <div class="stars-picker" id="stars-picker"><span data-v="1">☆</span><span data-v="2">☆</span><span data-v="3">☆</span><span data-v="4">☆</span><span data-v="5">☆</span></div>
@@ -592,7 +568,7 @@ footer strong{color:var(--accent2);}
     <span style="font-family:'Playfair Display',serif;font-size:1.8rem;letter-spacing:5px;">RADAR</span>
     <span style="font-size:.68rem;color:rgba(255,255,255,.35);letter-spacing:1.5px;font-weight:600;">Rastreo de Animales Desaparecidos con Alerta Regional</span>
   </span>
-  <div class="footer-links"><a href="#" onclick="showPage('main');return false">Inicio</a><a href="#" onclick="showPage('info');return false">Cómo funciona</a><a href="#" onclick="showPage('info');return false">Reseñas</a></div>
+  <div class="footer-links"><a href="#" onclick="showPage('main');return false">Inicio</a><a href="#" onclick="showPage('info');return false">Reseñas</a></div>
   <p>Hecho con ❤️ · <strong>RADAR</strong> · Argentina 🇦🇷 · Gratuito para siempre</p>
 </footer>
 
@@ -759,11 +735,8 @@ function escucharMascotas(){
 async function cargarResenas(){
   try{
     const snap=await getDocs(query(collection(db,"resenas"),orderBy("ts","desc")));
-    if(snap.empty){
-      for(const r of RESENAS_DEMO) await addDoc(collection(db,"resenas"),{...r,ts:serverTimestamp()});
-      resenas=[...RESENAS_DEMO];
-    } else { resenas=snap.docs.map(d=>({id:d.id,...d.data()})); }
-  } catch(e){ resenas=[...RESENAS_DEMO]; }
+    resenas=snap.docs.map(d=>({id:d.id,...d.data()}));
+  } catch(e){ resenas=[]; }
   renderResenas();
 }
 
@@ -1033,7 +1006,18 @@ function renderMapPins(filtro="Todas"){
 function filtrarMapa(btn){ document.querySelectorAll(".map-filter-btn").forEach(b=>b.classList.remove("on")); btn.classList.add("on"); renderMapPins(btn.dataset.f); }
 
 // ══ RESEÑAS ══
-function renderResenas(){ document.getElementById("reviews-grid").innerHTML=resenas.slice(0,6).map(r=>`<div class="review-card"><div class="review-stars">${"⭐".repeat(r.estrellas)}</div><div class="review-text">"${r.texto}"</div><div class="review-author"><div class="review-avatar"><img src="${r.avatar}" alt="${r.nombre}"></div><div><div class="review-name">${r.nombre}</div><div class="review-city">📍 ${r.ciudad}</div></div></div></div>`).join(""); }
+function renderResenas(){
+  const grid=document.getElementById("reviews-grid");
+  const empty=document.getElementById("reviews-empty");
+  const reales=resenas.filter(r=>r.id);
+  if(!reales.length){
+    if(grid) grid.innerHTML="";
+    if(empty) empty.style.display="block";
+  } else {
+    if(empty) empty.style.display="none";
+    if(grid) grid.innerHTML=reales.slice(0,6).map(r=>`<div class="review-card"><div class="review-stars">${"⭐".repeat(r.estrellas)}</div><div class="review-text">"${r.texto}"</div><div class="review-author"><div class="review-avatar"><img src="${r.avatar}" alt="${r.nombre}"></div><div><div class="review-name">${r.nombre}</div><div class="review-city">📍 ${r.ciudad}</div></div></div></div>`).join("");
+  }
+}
 document.querySelectorAll("#stars-picker span").forEach(s=>{ s.addEventListener("mouseover",()=>updateStars(+s.dataset.v)); s.addEventListener("click",()=>{ selStars=+s.dataset.v; updateStars(selStars); }); s.addEventListener("mouseout",()=>updateStars(selStars)); });
 function updateStars(n){ document.querySelectorAll("#stars-picker span").forEach((s,i)=>{ s.textContent=i<n?"⭐":"☆"; }); }
 async function agregarResena(){
@@ -1052,7 +1036,6 @@ async function agregarResena(){
 function actualizarStats(){
   document.getElementById("s-total").textContent=mascotas.length;
   document.getElementById("s-resueltas").textContent=mascotas.filter(m=>m.resuelta).length;
-  renderTicker();
 }
 function renderTicker(){
   const t=document.getElementById("ticker");
@@ -1111,7 +1094,7 @@ window.agregarResena=agregarResena; window.selChip=selChip; window.clearChip=cle
 window.cerrarPanelAdminView=cerrarPanelAdminView; window.resolverAdmin=resolverAdmin;
 window.eliminarMascotaAdmin=eliminarMascotaAdmin; window.eliminarResenaAdmin=eliminarResenaAdmin;
 window.mostrarAdmin=mostrarAdmin; window.toggleNav=toggleNav; window.closeMobileNav=closeMobileNav;
-window.renderTicker=renderTicker; window.resetearBusqueda=resetearBusqueda;
+window.resetearBusqueda=resetearBusqueda;
 </script>
 </body>
 </html>
