@@ -703,15 +703,42 @@ function switchTab(t){
   if(t==="mis") renderMisPublicaciones();
 }
 
+// ── AUTOCOMPLETE con API georef.datos.gob.ar ──
+let _acTimers={};
 function setupAC(inputId,listId,chipKey){
   const inp=document.getElementById(inputId),list=document.getElementById(listId);
   inp.addEventListener("input",()=>{
-    const v=inp.value.trim().toLowerCase(); chips[chipKey].ok=false; list.innerHTML="";
+    const v=inp.value.trim();
+    chips[chipKey].ok=false; list.innerHTML="";
     if(v.length<2){ list.style.display="none"; return; }
-    const m=LOCS.filter(l=>l.toLowerCase().includes(v)).slice(0,8);
-    if(!m.length){ list.style.display="none"; return; }
-    m.forEach(loc=>{ const d=document.createElement("div"); d.textContent=loc; d.onclick=()=>{ selChip(chipKey,loc); inp.value=""; list.style.display="none"; }; list.appendChild(d); });
-    list.style.display="block";
+    // Debounce 300ms para no spamear la API
+    clearTimeout(_acTimers[chipKey]);
+    _acTimers[chipKey]=setTimeout(async()=>{
+      try{
+        const url=`https://apis.datos.gob.ar/georef/api/localidades?nombre=${encodeURIComponent(v)}&max=8&campos=nombre,provincia.nombre&orden=nombre`;
+        const res=await fetch(url);
+        if(!res.ok) throw new Error("API error");
+        const data=await res.json();
+        list.innerHTML="";
+        const locs=data.localidades||[];
+        if(!locs.length){ list.style.display="none"; return; }
+        locs.forEach(loc=>{
+          const label=`${loc.nombre}, ${loc.provincia.nombre}`;
+          const d=document.createElement("div");
+          d.innerHTML=`<strong>${loc.nombre}</strong> <span style="font-size:.82rem;color:var(--muted);">${loc.provincia.nombre}</span>`;
+          d.onclick=()=>{ selChip(chipKey,label); inp.value=""; list.style.display="none"; };
+          list.appendChild(d);
+        });
+        list.style.display="block";
+      } catch(e){
+        // Si la API falla, caer de vuelta al array local
+        const m=LOCS.filter(l=>l.toLowerCase().includes(v.toLowerCase())).slice(0,8);
+        list.innerHTML="";
+        if(!m.length){ list.style.display="none"; return; }
+        m.forEach(loc=>{ const d=document.createElement("div"); d.textContent=loc; d.onclick=()=>{ selChip(chipKey,loc); inp.value=""; list.style.display="none"; }; list.appendChild(d); });
+        list.style.display="block";
+      }
+    },300);
   });
   document.addEventListener("click",e=>{ if(!inp.contains(e.target)) list.style.display="none"; });
 }
