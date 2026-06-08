@@ -123,32 +123,33 @@ nav.scrolled{background:rgba(30,43,34,.97);backdrop-filter:blur(14px);box-shadow
 .btn-pub{width:100%;padding:15px;margin-top:16px;border:none;border-radius:9px;background:var(--brand);color:#fff;font-family:'Nunito',sans-serif;font-weight:800;font-size:1.05rem;cursor:pointer;box-shadow:0 5px 20px rgba(74,124,89,.35);transition:all .2s;}
 .btn-pub:hover{background:var(--brand2);transform:translateY(-2px);}
 .btn-pub:disabled{opacity:.6;cursor:not-allowed;transform:none;}
-.cards-grid{display:flex;flex-wrap:wrap;gap:18px;justify-content:center;}
-.pet-card{background:var(--surface);width:252px;border-radius:16px;overflow:hidden;box-shadow:var(--shadow);transition:all .28s;border:1.5px solid var(--border);}
-.pet-card:hover{transform:translateY(-6px);box-shadow:var(--shadow-lg);border-color:var(--brand2);}
+.cards-grid{display:flex;flex-wrap:wrap;gap:20px;justify-content:center;}
+.pet-card{background:var(--surface);width:252px;border-radius:16px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.09),0 1px 4px rgba(0,0,0,.06);transition:all .28s;border:none;}
+.pet-card:hover{transform:translateY(-4px);box-shadow:0 12px 32px rgba(0,0,0,.13),0 2px 8px rgba(0,0,0,.07);}
 .pet-card.resuelta{opacity:.55;}
 .pet-card-img-wrap{position:relative;height:178px;overflow:hidden;}
-.pet-card-img-wrap img{width:100%;height:100%;object-fit:cover;transition:transform .4s;}
-.pet-card:hover .pet-card-img-wrap img{transform:scale(1.05);}
-.pet-card-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.45),transparent 55%);}
+.pet-card-img-wrap img{width:100%;height:100%;object-fit:cover;transition:transform .3s;}
+.pet-card:hover .pet-card-img-wrap img{transform:scale(1.04);}
+.pet-card-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.35),transparent 55%);}
 .pet-card-badges{position:absolute;top:10px;left:10px;display:flex;gap:4px;flex-wrap:wrap;}
-.badge{padding:3px 10px;border-radius:4px;font-weight:800;font-size:.68rem;letter-spacing:.3px;}
-.badge-perdida{background:#F7C1C1;color:#791F1F;}
-.badge-encontrada{background:#C0DD97;color:#27500A;}
-.badge-tipo{background:rgba(255,255,255,.92);color:#444441;border:0.5px solid rgba(0,0,0,.08);}
-.badge-resuelta{background:#E0E0E0;color:#555;}
-.pet-card-body{padding:14px 16px 8px;}
-.pet-card-name{font-family:'Playfair Display',serif;font-size:1.2rem;color:var(--text);margin-bottom:4px;}
-.pet-card-info{font-size:.8rem;color:var(--muted);margin-bottom:2px;font-weight:600;}
+.badge{padding:4px 10px;border-radius:20px;font-weight:600;font-size:.68rem;letter-spacing:.2px;}
+.badge-perdida{background:rgba(247,193,193,.95);color:#791F1F;}
+.badge-encontrada{background:rgba(192,221,151,.95);color:#27500A;}
+.badge-tipo{background:rgba(255,255,255,.93);color:#444441;font-size:.62rem;}
+.badge-resuelta{background:rgba(211,209,199,.95);color:#444441;}
+.pet-card-body{padding:16px 16px 10px;}
+.pet-card-name{font-family:'Playfair Display',serif;font-size:1.2rem;color:var(--text);margin-bottom:6px;line-height:1.2;}
+.pet-card-info{font-size:.8rem;color:var(--muted);margin-bottom:3px;font-weight:600;}
 .pet-card-date{font-size:.71rem;color:#BBB;margin-top:6px;}
-.pet-card-actions{display:flex;gap:5px;padding:8px 10px 12px;}
-.btn-ver{flex:1;padding:8px 0;background:var(--brand);color:#fff;border:none;border-radius:20px;font-family:'Nunito',sans-serif;font-weight:800;font-size:.84rem;cursor:pointer;transition:background .2s;}
+.pet-card-actions{display:flex;gap:8px;padding:10px 14px 16px;align-items:center;}
+.btn-ver{flex:1;padding:10px 0;background:var(--brand);color:#fff;border:none;border-radius:24px;font-family:'Nunito',sans-serif;font-weight:800;font-size:.86rem;cursor:pointer;transition:background .2s;letter-spacing:.2px;}
 .btn-ver:hover{background:var(--brand2);}
-.btn-wpp{padding:8px 12px;background:transparent;color:var(--brand);border:1.5px solid var(--brand);border-radius:20px;cursor:pointer;font-size:.95rem;transition:all .2s;}
-.btn-wpp:hover{background:var(--brand);color:#fff;}
-.btn-share{padding:8px 12px;background:transparent;color:var(--muted);border:0.5px solid var(--border);border-radius:20px;cursor:pointer;font-size:.95rem;transition:all .2s;}
-.btn-share:hover{background:var(--fondo);}
-.btn-resuelto{padding:8px 10px;background:transparent;color:#27AE60;border:1.5px solid #27AE60;border-radius:20px;cursor:pointer;font-size:.72rem;font-weight:800;transition:all .2s;}
+.btn-actions-divider{width:0.5px;height:16px;background:var(--border);flex-shrink:0;}
+.btn-wpp{width:38px;height:38px;background:#E8FEF0;color:#1a7a3c;border:none;border-radius:50%;cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0;}
+.btn-wpp:hover{background:#25D366;color:#fff;}
+.btn-share{width:38px;height:38px;background:var(--fondo);color:var(--muted);border:0.5px solid var(--border);border-radius:50%;cursor:pointer;font-size:.95rem;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0;}
+.btn-share:hover{border-color:var(--brand);color:var(--brand);}
+.btn-resuelto{width:38px;height:38px;background:#EAF3DE;color:#27500A;border:none;border-radius:50%;cursor:pointer;font-size:.8rem;font-weight:800;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0;}
 .btn-resuelto:hover{background:#27AE60;color:#fff;}
 .no-res{text-align:center;padding:60px 20px;color:var(--muted);width:100%;}
 .no-res-emoji{font-size:4rem;display:block;margin-bottom:12px;}
@@ -892,7 +893,7 @@ function renderCards(lista){
     const imgHtml=fotoSrc
       ? `<img src="${fotoSrc}" alt="${m.nombre}" onerror="this.parentElement.innerHTML='<div style=\'width:100%;height:100%;background:#F1EFE8;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px\'><span style=\'font-size:2.8rem\'>${emojiPlaceholder}</span><span style=\'font-size:11px;color:#888\'>Sin foto</span></div>'">`
       : `<div style="width:100%;height:100%;background:#F1EFE8;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px"><span style="font-size:2.8rem">${emojiPlaceholder}</span><span style="font-size:11px;color:#888">Sin foto</span></div>`;
-    d.innerHTML=`<div class="pet-card-img-wrap">${imgHtml}<div class="pet-card-overlay"></div><div class="pet-card-badges">${m.resuelta?'<span class="badge badge-resuelta">✅ Resuelta</span>':`<span class="badge badge-${m.estado.toLowerCase()}">${m.estado}</span>`}<span class="badge badge-tipo">${m.tipo}</span></div></div><div class="pet-card-body"><div class="pet-card-name">${m.nombre}</div><div class="pet-card-info">📍 ${m.localidad}</div>${m.edad?`<div class="pet-card-info">🎂 ${m.edad} año${m.edad>1?"s":""}</div>`:""}<div class="pet-card-info">🐾 ${m.raza||m.tipo}</div><div class="pet-card-date">📅 ${fecha}</div></div><div class="pet-card-actions"><button class="btn-ver" onclick="openModal('${m.id}')">Ver más</button><button class="btn-wpp" onclick="irWpp('${m.contacto}','${m.nombre}','${m.localidad}')">💬</button><button class="btn-share" onclick="openShare('${m.id}')">🔁</button>${puedeResolver?`<button class="btn-resuelto" onclick="marcarResuelta('${m.id}','${m.nombre}')">✅</button>`:""}</div>`;
+    d.innerHTML=`<div class="pet-card-img-wrap">${imgHtml}<div class="pet-card-overlay"></div><div class="pet-card-badges">${m.resuelta?'<span class="badge badge-resuelta">✅ Resuelta</span>':`<span class="badge badge-${m.estado.toLowerCase()}">${m.estado}</span>`}<span class="badge badge-tipo">${m.tipo}</span></div></div><div class="pet-card-body"><div class="pet-card-name">${m.nombre}</div><div class="pet-card-info">📍 ${m.localidad}</div>${m.edad?`<div class="pet-card-info">🎂 ${m.edad} año${m.edad>1?"s":""}</div>`:""}<div class="pet-card-info">🐾 ${m.raza||m.tipo}</div><div class="pet-card-date">📅 ${fecha}</div></div><div class="pet-card-actions"><button class="btn-ver" onclick="openModal('${m.id}')">Ver más</button><div class="btn-actions-divider"></div><button class="btn-wpp" onclick="irWpp('${m.contacto}','${m.nombre}','${m.localidad}')">💬</button><button class="btn-share" onclick="openShare('${m.id}')">🔁</button>${puedeResolver?`<button class="btn-resuelto" onclick="marcarResuelta('${m.id}','${m.nombre}')">✅</button>`:""}</div>`;
     g.appendChild(d);
   });
 }
