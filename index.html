@@ -653,11 +653,15 @@ async function cargarResenas(){
 }
 
 async function cargarDemoSiVacio(){
-  const snap=await getDocs(collection(db,"mascotas"));
-  if(snap.empty){
-    setDbMsg("Cargando datos iniciales...");
-    for(const m of MASCOTAS_DEMO) await addDoc(collection(db,"mascotas"),{...m,ts:serverTimestamp()});
-  }
+  // Solo intentar cargar demos si hay un usuario autenticado (la escritura requiere auth)
+  if(!currentUser && !sessionStorage.getItem("radar_admin")) return;
+  try{
+    const snap=await getDocs(collection(db,"mascotas"));
+    if(snap.empty){
+      setDbMsg("Cargando datos iniciales...");
+      for(const m of MASCOTAS_DEMO) await addDoc(collection(db,"mascotas"),{...m,ts:serverTimestamp()});
+    }
+  } catch(e){ console.warn("No se pudieron cargar datos demo:",e); }
 }
 
 async function doLogin(){
