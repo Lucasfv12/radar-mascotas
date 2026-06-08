@@ -23,7 +23,7 @@ body{font-family:'Nunito',sans-serif;background:var(--fondo);color:var(--text);o
 ::-webkit-scrollbar{width:7px;}::-webkit-scrollbar-track{background:transparent;}
 ::-webkit-scrollbar-thumb{background:var(--brand2);border-radius:10px;}
 ::-webkit-scrollbar-thumb:hover{background:var(--brand);}
-#login-screen{position:fixed;inset:0;background:#1E2B22;display:flex;align-items:flex-start;justify-content:center;z-index:99999;padding:20px;overflow-y:auto;background-image:radial-gradient(ellipse at 20% 50%,rgba(74,124,89,.3) 0%,transparent 60%),radial-gradient(ellipse at 80% 20%,rgba(200,130,58,.15) 0%,transparent 60%);}
+#login-screen{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:99999;padding:20px;overflow-y:auto;backdrop-filter:blur(4px);}
 #login-screen > div{margin:auto;}
 .login-box{background:#fff;border-radius:20px;padding:44px 40px;max-width:400px;width:100%;text-align:center;box-shadow:0 24px 80px rgba(0,0,0,.4);}
 .login-title{font-family:'Playfair Display',serif;font-size:1.7rem;color:#1E2B22;margin-bottom:4px;}
@@ -133,18 +133,23 @@ nav.scrolled{background:rgba(30,43,34,.97);backdrop-filter:blur(14px);box-shadow
 .pet-card-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.45),transparent 55%);}
 .pet-card-badges{position:absolute;top:10px;left:10px;display:flex;gap:4px;flex-wrap:wrap;}
 .badge{padding:3px 10px;border-radius:4px;font-weight:800;font-size:.68rem;letter-spacing:.3px;}
-.badge-perdida{background:#C0392B;color:#fff;}.badge-encontrada{background:#27AE60;color:#fff;}
-.badge-tipo{background:rgba(255,255,255,.9);color:var(--text);}.badge-resuelta{background:#999;color:#fff;}
+.badge-perdida{background:#F7C1C1;color:#791F1F;}
+.badge-encontrada{background:#C0DD97;color:#27500A;}
+.badge-tipo{background:rgba(255,255,255,.92);color:#444441;border:0.5px solid rgba(0,0,0,.08);}
+.badge-resuelta{background:#E0E0E0;color:#555;}
 .pet-card-body{padding:14px 16px 8px;}
 .pet-card-name{font-family:'Playfair Display',serif;font-size:1.2rem;color:var(--text);margin-bottom:4px;}
 .pet-card-info{font-size:.8rem;color:var(--muted);margin-bottom:2px;font-weight:600;}
 .pet-card-date{font-size:.71rem;color:#BBB;margin-top:6px;}
-.pet-card-actions{display:flex;gap:6px;padding:8px 12px 12px;}
-.btn-ver{flex:1;padding:8px;background:var(--brand);color:#fff;border:none;border-radius:7px;font-family:'Nunito',sans-serif;font-weight:800;font-size:.86rem;cursor:pointer;transition:background .2s;}
+.pet-card-actions{display:flex;gap:5px;padding:8px 10px 12px;}
+.btn-ver{flex:1;padding:8px 0;background:var(--brand);color:#fff;border:none;border-radius:20px;font-family:'Nunito',sans-serif;font-weight:800;font-size:.84rem;cursor:pointer;transition:background .2s;}
 .btn-ver:hover{background:var(--brand2);}
-.btn-wpp{padding:8px 11px;background:#25D366;color:#fff;border:none;border-radius:7px;cursor:pointer;font-size:.95rem;}
-.btn-share{padding:8px 11px;background:var(--dark2);color:#fff;border:none;border-radius:7px;cursor:pointer;font-size:.95rem;}
-.btn-resuelto{padding:8px 10px;background:#27AE60;color:#fff;border:none;border-radius:7px;cursor:pointer;font-size:.72rem;font-weight:800;}
+.btn-wpp{padding:8px 12px;background:transparent;color:var(--brand);border:1.5px solid var(--brand);border-radius:20px;cursor:pointer;font-size:.95rem;transition:all .2s;}
+.btn-wpp:hover{background:var(--brand);color:#fff;}
+.btn-share{padding:8px 12px;background:transparent;color:var(--muted);border:0.5px solid var(--border);border-radius:20px;cursor:pointer;font-size:.95rem;transition:all .2s;}
+.btn-share:hover{background:var(--fondo);}
+.btn-resuelto{padding:8px 10px;background:transparent;color:#27AE60;border:1.5px solid #27AE60;border-radius:20px;cursor:pointer;font-size:.72rem;font-weight:800;transition:all .2s;}
+.btn-resuelto:hover{background:#27AE60;color:#fff;}
 .no-res{text-align:center;padding:60px 20px;color:var(--muted);width:100%;}
 .no-res-emoji{font-size:4rem;display:block;margin-bottom:12px;}
 .map-header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:16px;}
@@ -261,6 +266,7 @@ footer strong{color:var(--accent2);}
 </div>
 
 <div id="login-screen" style="display:none;">
+  <button onclick="cerrarLoginModal()" style="position:fixed;top:16px;right:16px;background:rgba(255,255,255,.15);border:none;color:#fff;width:36px;height:36px;border-radius:50%;font-size:1.2rem;cursor:pointer;z-index:100000;display:flex;align-items:center;justify-content:center;">✕</button>
   <div id="admin-login-panel">
     <div class="login-box">
       <div style="text-align:center;margin-bottom:16px;">
@@ -331,16 +337,16 @@ footer strong{color:var(--accent2);}
     <span class="nav-user" id="nav-user-name"></span>
     <a href="#" onclick="showPage('main');return false">Inicio</a>
     <a href="#" onclick="showPage('info');return false">Reseñas</a>
-    <a href="#" class="cta" onclick="showPage('main');setTimeout(()=>switchTab('publicar'),300);return false">Publicar</a>
-    <a href="#" onclick="cerrarSesion();return false" style="color:rgba(255,255,255,.45);font-size:.8rem;border:1px solid rgba(255,255,255,.15);border-radius:7px;">Salir</a>
+    <a href="#" class="cta" onclick="accionAutenticada(()=>{ showPage('main');setTimeout(()=>switchTab('publicar'),300); });return false">Publicar</a>
+    <a href="#" id="nav-session-btn" onclick="manejarSesionNav();return false" style="color:rgba(255,255,255,.45);font-size:.8rem;border:1px solid rgba(255,255,255,.15);border-radius:7px;">Ingresar</a>
   </div>
   <button class="nav-hamburger" id="hamburger" onclick="toggleNav()"><span></span><span></span><span></span></button>
 </nav>
 <div class="nav-mobile" id="nav-mobile">
   <a href="#" onclick="showPage('main');closeMobileNav()">🔍 Buscar mascota</a>
   <a href="#" onclick="showPage('info');closeMobileNav()">⭐ Reseñas</a>
-  <a href="#" onclick="showPage('main');setTimeout(()=>switchTab('publicar'),300);closeMobileNav()" style="background:var(--accent);color:#fff;">Publicar</a>
-  <a href="#" onclick="cerrarSesion();closeMobileNav()" style="color:rgba(255,255,255,.5);">Salir</a>
+  <a href="#" onclick="accionAutenticada(()=>{showPage('main');setTimeout(()=>switchTab('publicar'),300);});closeMobileNav()" style="background:var(--accent);color:#fff;">Publicar</a>
+  <a href="#" id="nav-mobile-session-btn" onclick="manejarSesionNav();closeMobileNav()" style="color:rgba(255,255,255,.5);">Ingresar</a>
 </div>
 
 <div id="page-main" style="position:relative;z-index:1;">
@@ -545,27 +551,63 @@ const LOCS=["Agronomía","Almagro","Balvanera","Barracas","Belgrano","Boedo","Ca
 
 function setDbMsg(msg){ const el=document.getElementById("db-msg"); if(el) el.textContent=msg; }
 
-function mostrarLoginScreen(){
-  document.getElementById("db-loading").style.display="none";
+// ── MODO PÚBLICO: la app arranca sin login ──
+function mostrarLoginModal(callback=null){
+  if(callback) window._loginCallback=callback;
   document.getElementById("login-screen").style.display="flex";
+  lockScroll();
   setTimeout(()=>{ const el=document.getElementById("li-email"); if(el) el.focus(); },150);
 }
 
-function entrar(nombre){
+function cerrarLoginModal(){
   document.getElementById("login-screen").style.display="none";
+  unlockScroll();
+  window._loginCallback=null;
+}
+
+// Ejecuta una acción — si no hay sesión, abre el modal de login primero
+function accionAutenticada(fn){
+  if(currentUser||sessionStorage.getItem("radar_admin")){ fn(); }
+  else{ mostrarLoginModal(fn); }
+}
+
+function manejarSesionNav(){
+  if(currentUser||sessionStorage.getItem("radar_admin")) cerrarSesion();
+  else mostrarLoginModal();
+}
+
+function actualizarNavSesion(){
+  const logueado=!!(currentUser||sessionStorage.getItem("radar_admin"));
+  const btn=document.getElementById("nav-session-btn");
+  const btnM=document.getElementById("nav-mobile-session-btn");
+  const nombre=currentUser?(currentUser.displayName||currentUser.email):sessionStorage.getItem("radar_admin")?"Administrador":null;
+  if(btn){ btn.textContent=logueado?"Salir":"Ingresar"; }
+  if(btnM){ btnM.textContent=logueado?"Salir":"Ingresar"; }
+  document.getElementById("nav-user-name").textContent=logueado?"👋 "+(nombre||""):"";
+}
+
+function entrarPublico(){
   document.getElementById("db-loading").style.display="none";
   document.body.style.overflow="";
-  document.getElementById("nav-user-name").textContent="👋 "+(nombre||"");
+  actualizarNavSesion();
   renderCards(mascotas);
   renderResenas();
   actualizarStats();
+  // Si había una acción pendiente tras el login, ejecutarla
+  if(window._loginCallback){
+    const cb=window._loginCallback; window._loginCallback=null;
+    cerrarLoginModal(); setTimeout(cb,300);
+  } else {
+    cerrarLoginModal();
+  }
 }
 
 document.body.style.overflow="hidden";
 const _fbTimeout=setTimeout(()=>{
   if(document.getElementById("db-loading").style.display!=="none"){
-    console.warn("Firebase tardó demasiado, mostrando login.");
-    mostrarLoginScreen();
+    console.warn("Firebase tardó demasiado, cargando igual.");
+    currentUser=null;
+    cargarDemoSiVacio().then(()=>{ escucharMascotas(); cargarResenas(); entrarPublico(); });
   }
 },10000);
 
@@ -575,15 +617,18 @@ onAuthStateChanged(auth,async user=>{
     if(user){
       currentUser=user; setDbMsg("Cargando datos...");
       await cargarDemoSiVacio(); escucharMascotas(); await cargarResenas();
-      entrar(user.displayName||user.email);
+      entrarPublico();
     } else if(sessionStorage.getItem("radar_admin")){
       currentUser=null; setDbMsg("Cargando datos...");
       await cargarDemoSiVacio(); escucharMascotas(); await cargarResenas();
-      entrar("Administrador"); setTimeout(mostrarAdmin,200);
+      entrarPublico(); setTimeout(mostrarAdmin,200);
     } else {
-      currentUser=null; mostrarLoginScreen();
+      // Sin sesión — igual cargar datos y mostrar la app
+      currentUser=null; setDbMsg("Cargando publicaciones...");
+      await cargarDemoSiVacio(); escucharMascotas(); await cargarResenas();
+      entrarPublico();
     }
-  } catch(e){ console.error("Error al inicializar:",e); mostrarLoginScreen(); }
+  } catch(e){ console.error("Error al inicializar:",e); entrarPublico(); }
 });
 
 let _adminRefreshTimer=null;
@@ -655,8 +700,10 @@ async function cerrarSesion(){
   resetearBusqueda(); busquedaActiva=false;
   if(unsub){ unsub(); unsub=null; }
   sessionStorage.removeItem("radar_admin");
-  if(currentUser) await signOut(auth);
-  else location.reload();
+  if(currentUser){ await signOut(auth); }
+  currentUser=null;
+  actualizarNavSesion();
+  location.reload();
 }
 
 function resetearBusqueda(){
@@ -715,7 +762,7 @@ function setupAC(inputId,listId,chipKey){
     clearTimeout(_acTimers[chipKey]);
     _acTimers[chipKey]=setTimeout(async()=>{
       try{
-        const url=`https://apis.datos.gob.ar/georef/api/localidades?nombre=${encodeURIComponent(v)}&max=8&campos=nombre,provincia.nombre&orden=nombre`;
+        const url=`https://apis.datos.gob.ar/georef/api/v2.0/localidades?nombre=${encodeURIComponent(v)}&max=8&campos=nombre,provincia.nombre&orden=nombre`;
         const res=await fetch(url);
         if(!res.ok) throw new Error("API error");
         const data=await res.json();
@@ -772,6 +819,9 @@ function fechaRelativa(ts){
 }
 
 async function publicar(){
+  if(!currentUser&&!sessionStorage.getItem("radar_admin")){
+    accionAutenticada(()=>switchTab('publicar')); return;
+  }
   const n=document.getElementById("p-nombre").value.trim(),t=document.getElementById("p-tipo").value;
   const s=document.getElementById("p-estado").value,c=document.getElementById("p-contacto").value.trim();
   const btn=document.getElementById("btn-pub"),zone=document.getElementById("upload-zone");
@@ -833,7 +883,12 @@ function renderCards(lista){
     const esAdmin=!!sessionStorage.getItem("radar_admin");
     const puedeResolver=!m.resuelta&&(esOwner||esAdmin);
     const fecha=m.ts?fechaRelativa(m.ts):(m.fecha||"");
-    d.innerHTML=`<div class="pet-card-img-wrap"><img src="${m.fotos[0]}" alt="${m.nombre}" onerror="this.src='https://placehold.co/300x200/4A7C59/fff?text=${encodeURIComponent(m.tipo)}'"><div class="pet-card-overlay"></div><div class="pet-card-badges">${m.resuelta?'<span class="badge badge-resuelta">✅ Resuelta</span>':`<span class="badge badge-${m.estado.toLowerCase()}">${m.estado}</span>`}<span class="badge badge-tipo">${m.tipo}</span></div></div><div class="pet-card-body"><div class="pet-card-name">${m.nombre}</div><div class="pet-card-info">📍 ${m.localidad}</div>${m.edad?`<div class="pet-card-info">🎂 ${m.edad} año${m.edad>1?"s":""}</div>`:""}<div class="pet-card-info">🐾 ${m.raza||m.tipo}</div><div class="pet-card-date">📅 ${fecha}</div></div><div class="pet-card-actions"><button class="btn-ver" onclick="openModal('${m.id}')">Ver más</button><button class="btn-wpp" onclick="irWpp('${m.contacto}','${m.nombre}','${m.localidad}')">💬</button><button class="btn-share" onclick="openShare('${m.id}')">🔁</button>${puedeResolver?`<button class="btn-resuelto" onclick="marcarResuelta('${m.id}','${m.nombre}')">✅</button>`:""}</div>`;
+    const emojiPlaceholder=m.tipo==="Gato"?"🐱":m.tipo==="Loro"?"🦜":m.tipo==="Conejo"?"🐰":"🐶";
+    const fotoSrc=m.fotos[0].startsWith("data:")||m.fotos[0].startsWith("http")?m.fotos[0]:null;
+    const imgHtml=fotoSrc
+      ? `<img src="${fotoSrc}" alt="${m.nombre}" onerror="this.parentElement.innerHTML='<div style=\'width:100%;height:100%;background:#F1EFE8;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px\'><span style=\'font-size:2.8rem\'>${emojiPlaceholder}</span><span style=\'font-size:11px;color:#888\'>Sin foto</span></div>'">`
+      : `<div style="width:100%;height:100%;background:#F1EFE8;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px"><span style="font-size:2.8rem">${emojiPlaceholder}</span><span style="font-size:11px;color:#888">Sin foto</span></div>`;
+    d.innerHTML=`<div class="pet-card-img-wrap">${imgHtml}<div class="pet-card-overlay"></div><div class="pet-card-badges">${m.resuelta?'<span class="badge badge-resuelta">✅ Resuelta</span>':`<span class="badge badge-${m.estado.toLowerCase()}">${m.estado}</span>`}<span class="badge badge-tipo">${m.tipo}</span></div></div><div class="pet-card-body"><div class="pet-card-name">${m.nombre}</div><div class="pet-card-info">📍 ${m.localidad}</div>${m.edad?`<div class="pet-card-info">🎂 ${m.edad} año${m.edad>1?"s":""}</div>`:""}<div class="pet-card-info">🐾 ${m.raza||m.tipo}</div><div class="pet-card-date">📅 ${fecha}</div></div><div class="pet-card-actions"><button class="btn-ver" onclick="openModal('${m.id}')">Ver más</button><button class="btn-wpp" onclick="irWpp('${m.contacto}','${m.nombre}','${m.localidad}')">💬</button><button class="btn-share" onclick="openShare('${m.id}')">🔁</button>${puedeResolver?`<button class="btn-resuelto" onclick="marcarResuelta('${m.id}','${m.nombre}')">✅</button>`:""}</div>`;
     g.appendChild(d);
   });
 }
@@ -883,7 +938,14 @@ function openModal(id){
 }
 function closeModal(){ if(!document.getElementById("modal").classList.contains("open"))return; document.getElementById("modal").classList.remove("open"); unlockScroll(); modalPetId=null; }
 document.getElementById("modal").addEventListener("click",e=>{ if(e.target===document.getElementById("modal")) closeModal(); });
-function irWpp(contacto,nombre,localidad){ const tel=contacto.replace(/\D/g,""),msg=encodeURIComponent(`Hola! Vi la publicación de "${nombre}" en RADAR (${localidad}). ¿Me podés dar más información?`); if(tel.length>=8) window.open(`https://wa.me/54${tel}?text=${msg}`,"_blank"); else toast("📞 Contacto: "+contacto); }
+function irWpp(contacto,nombre,localidad){
+  if(!currentUser&&!sessionStorage.getItem("radar_admin")){
+    accionAutenticada(()=>irWpp(contacto,nombre,localidad)); return;
+  }
+  const tel=contacto.replace(/\D/g,""),msg=encodeURIComponent(`Hola! Vi la publicación de "${nombre}" en RADAR (${localidad}). ¿Me podés dar más información?`);
+  if(tel.length>=8) window.open(`https://wa.me/54${tel}?text=${msg}`,"_blank");
+  else toast("📞 Contacto: "+contacto);
+}
 
 function openShare(id){ shareId=id; lockScroll(); document.getElementById("share-link-txt").textContent=`${location.origin}${location.pathname}#aviso-${id}`; document.getElementById("shareOverlay").classList.add("open"); }
 function closeShare(){ if(!document.getElementById("shareOverlay").classList.contains("open"))return; document.getElementById("shareOverlay").classList.remove("open"); unlockScroll(); shareId=null; }
@@ -922,6 +984,9 @@ function renderResenas(){
 document.querySelectorAll("#stars-picker span").forEach(s=>{ s.addEventListener("mouseover",()=>updateStars(+s.dataset.v)); s.addEventListener("click",()=>{ selStars=+s.dataset.v; updateStars(selStars); }); s.addEventListener("mouseout",()=>updateStars(selStars)); });
 function updateStars(n){ document.querySelectorAll("#stars-picker span").forEach((s,i)=>{ s.textContent=i<n?"⭐":"☆"; }); }
 async function agregarResena(){
+  if(!currentUser&&!sessionStorage.getItem("radar_admin")){
+    accionAutenticada(()=>agregarResena()); return;
+  }
   const n=document.getElementById("rev-nombre").value.trim(),c=document.getElementById("rev-ciudad").value.trim(),t=document.getElementById("rev-texto").value.trim();
   if(!n||!c||!t){ toast("⚠️ Completá todos los campos"); return; }
   if(!selStars){ toast("⭐ Elegí una puntuación"); return; }
@@ -980,6 +1045,8 @@ window.eliminarMascotaAdmin=eliminarMascotaAdmin; window.eliminarResenaAdmin=eli
 window.mostrarAdmin=mostrarAdmin; window.toggleNav=toggleNav; window.closeMobileNav=closeMobileNav;
 window.resetearBusqueda=resetearBusqueda; window.eliminarMiAviso=eliminarMiAviso;
 window.renderMisPublicaciones=renderMisPublicaciones;
+window.accionAutenticada=accionAutenticada; window.cerrarLoginModal=cerrarLoginModal;
+window.manejarSesionNav=manejarSesionNav;
 </script>
 </body>
 </html>
