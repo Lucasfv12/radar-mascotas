@@ -529,6 +529,23 @@ footer strong{color:var(--accent2);}
       <div class="cards-grid" id="mis-resultados"></div>
     </div>
   </div>
+
+  <div class="panel" id="panel-mapa">
+    <div class="search-card">
+      <div class="map-header"><h2>Mascotas en el mapa</h2>
+        <div class="map-legend">
+          <div class="legend-item"><div class="legend-dot ld-perdida"></div>Perdida</div>
+          <div class="legend-item"><div class="legend-dot ld-encontrada"></div>Encontrada</div>
+        </div>
+      </div>
+      <div class="map-filters">
+        <button class="map-filter-btn mfb-todas on" data-f="Todas" onclick="filtrarMapa(this)">Todas</button>
+        <button class="map-filter-btn mfb-perdida" data-f="Perdida" onclick="filtrarMapa(this)">Perdidas</button>
+        <button class="map-filter-btn mfb-encontrada" data-f="Encontrada" onclick="filtrarMapa(this)">Encontradas</button>
+      </div>
+      <div id="map"></div>
+    </div>
+  </div>
     <div class="search-card">
       <div class="map-header"><h2>Mascotas en el mapa</h2>
         <div class="map-legend">
