@@ -472,6 +472,7 @@ footer strong{color:var(--accent2);}
     <button class="tab-btn active" id="tb-buscar" onclick="switchTab('buscar')">🔍 Buscar</button>
     <button class="tab-btn" id="tb-publicar" onclick="switchTab('publicar')">📢 Publicar</button>
     <button class="tab-btn" id="tb-mapa" onclick="switchTab('mapa')">🗺️ Mapa</button>
+    <button class="tab-btn" id="tb-mis" onclick="switchTab('mis')">👤 Mis avisos</button>
   </div>
   <div class="panel active" id="panel-buscar">
     <div class="search-card">
@@ -508,10 +509,10 @@ footer strong{color:var(--accent2);}
         <div class="field"><label>Contacto *</label><input type="text" id="p-contacto" placeholder="Tel o email"></div>
         <div class="field"><label>Raza / Color</label><input type="text" id="p-raza" placeholder="Ej: Labrador dorado"></div>
         <div class="field full"><label>Descripción</label><input type="text" id="p-desc" placeholder="Collar rojo, muy amigable con niños..."></div>
-        <div class="field full"><label>Fotos (hasta 2)</label>
-          <div class="upload-zone" onclick="document.getElementById('p-fotos').click()">
+        <div class="field full"><label>Foto * <span style="font-size:.72rem;color:#C0392B;font-weight:700;">obligatoria</span></label>
+          <div class="upload-zone" id="upload-zone" onclick="document.getElementById('p-fotos').click()">
             <span class="upload-emoji">📸</span>
-            <p><strong>Tocá para elegir fotos de tu galería</strong></p>
+            <p><strong>Tocá para elegir al menos una foto</strong></p>
             <p style="font-size:.76rem;color:#bbb;margin-top:3px">JPG o PNG · Hasta 2 imágenes · Máx 5MB cada una</p>
             <input type="file" id="p-fotos" accept="image/*" multiple>
           </div>
@@ -521,7 +522,13 @@ footer strong{color:var(--accent2);}
       <button class="btn-pub" id="btn-pub" onclick="publicar()">Publicar mascota 🐾</button>
     </div>
   </div>
-  <div class="panel" id="panel-mapa">
+  <div class="panel" id="panel-mis">
+    <div class="search-card">
+      <h2>Mis avisos</h2>
+      <p style="color:var(--muted);font-size:.9rem;margin-bottom:20px;">Las publicaciones que creaste. Solo vos podés marcarlas como resueltas o eliminarlas.</p>
+      <div class="cards-grid" id="mis-resultados"></div>
+    </div>
+  </div>
     <div class="search-card">
       <div class="map-header"><h2>Mascotas en el mapa</h2>
         <div class="map-legend">
@@ -849,9 +856,10 @@ function showPage(page){
 }
 function goToApp(t){ document.getElementById("app").scrollIntoView({behavior:"smooth"}); setTimeout(()=>switchTab(t),350); }
 function switchTab(t){
-  ["buscar","publicar","mapa"].forEach(x=>{ document.getElementById("panel-"+x).classList.remove("active"); document.getElementById("tb-"+x).classList.remove("active"); });
+  ["buscar","publicar","mapa","mis"].forEach(x=>{ document.getElementById("panel-"+x).classList.remove("active"); document.getElementById("tb-"+x).classList.remove("active"); });
   document.getElementById("panel-"+t).classList.add("active"); document.getElementById("tb-"+t).classList.add("active");
   if(t==="mapa") setTimeout(initMap,100);
+  if(t==="mis") renderMisPublicaciones();
 }
 
 // ══ AUTOCOMPLETE ══
@@ -884,19 +892,44 @@ document.getElementById("p-fotos").addEventListener("change",function(){
 function renderThumbs(){ document.getElementById("thumbs").innerHTML=b64s.map((b,i)=>`<div class="thumb"><img src="${b}"><button class="thumb-del" onclick="delThumb(${i})">✕</button></div>`).join(""); }
 function delThumb(i){ b64s.splice(i,1); renderThumbs(); }
 
+// ══ FECHA RELATIVA ══
+function fechaRelativa(ts){
+  if(!ts?.seconds) return "";
+  const diff = Math.floor((Date.now() - ts.seconds*1000) / 1000);
+  if(diff < 60)              return "hace un momento";
+  if(diff < 3600)            return `hace ${Math.floor(diff/60)} min`;
+  if(diff < 86400)           return `hace ${Math.floor(diff/3600)} h`;
+  if(diff < 86400*2)         return "ayer";
+  if(diff < 86400*7)         return `hace ${Math.floor(diff/86400)} días`;
+  if(diff < 86400*30)        return `hace ${Math.floor(diff/86400/7)} semanas`;
+  return `hace ${Math.floor(diff/86400/30)} meses`;
+}
+
 // ══ PUBLICAR ══
 async function publicar(){
   const n=document.getElementById("p-nombre").value.trim(),t=document.getElementById("p-tipo").value,s=document.getElementById("p-estado").value,c=document.getElementById("p-contacto").value.trim(),btn=document.getElementById("btn-pub");
+  const zone=document.getElementById("upload-zone");
+
+  // Validar foto obligatoria
+  if(!b64s.length){
+    zone.style.borderColor="#C0392B";
+    zone.style.background="#FEF0F0";
+    toast("📸 Agregá al menos una foto — es obligatoria");
+    zone.scrollIntoView({behavior:"smooth",block:"center"});
+    return;
+  } else {
+    zone.style.borderColor="";
+    zone.style.background="";
+  }
+
   if(!n||!t||!s||!chips.p.ok||!c){ toast("⚠️ Completá los campos obligatorios (*)"); return; }
   btn.disabled=true; btn.textContent="Publicando...";
   const now=new Date(),fecha=`${String(now.getDate()).padStart(2,"0")}/${String(now.getMonth()+1).padStart(2,"0")}/${now.getFullYear()}`;
-  const fotos=b64s.length?[...b64s]:["https://images.dog.ceo/breeds/retriever-golden/n02099601_3004.jpg"];
   try{
-    await addDoc(collection(db,"mascotas"),{nombre:n,tipo:t,estado:s,edad:document.getElementById("p-edad").value?Number(document.getElementById("p-edad").value):null,localidad:chips.p.val,contacto:c,fotos,desc:document.getElementById("p-desc").value.trim(),raza:document.getElementById("p-raza").value.trim(),fecha,resuelta:false,ts:serverTimestamp(),publicadoPor:currentUser?currentUser.uid:"admin",publicadoPorNombre:currentUser?(currentUser.displayName||currentUser.email):"Administrador"});
+    await addDoc(collection(db,"mascotas"),{nombre:n,tipo:t,estado:s,edad:document.getElementById("p-edad").value?Number(document.getElementById("p-edad").value):null,localidad:chips.p.val,contacto:c,fotos:[...b64s],desc:document.getElementById("p-desc").value.trim(),raza:document.getElementById("p-raza").value.trim(),fecha,resuelta:false,ts:serverTimestamp(),publicadoPor:currentUser?currentUser.uid:"admin",publicadoPorNombre:currentUser?(currentUser.displayName||currentUser.email):"Administrador"});
     ["p-nombre","p-edad","p-contacto","p-raza","p-desc","p-loc"].forEach(id=>document.getElementById(id).value="");
     ["p-tipo","p-estado"].forEach(id=>document.getElementById(id).selectedIndex=0);
     clearChip("p"); b64s=[]; renderThumbs();
-    // Limpiar también el input de localidad por si quedó texto residual
     document.getElementById("p-loc").value="";
     document.getElementById("p-ac").style.display="none";
     toast("✅ ¡Mascota publicada!"); switchTab("buscar"); goToApp("buscar");
@@ -933,18 +966,59 @@ function aplicarOrden(){
 // ══ CARDS ══
 function renderCards(lista){
   const g=document.getElementById("resultados"); g.innerHTML="";
-  if(!lista.length){ g.innerHTML='<div class="no-res"><span class="no-res-emoji">🔍</span><p><strong>No encontramos mascotas</strong></p><p style="font-size:.85rem;margin-top:7px;color:#bbb">Podés publicar un aviso para que la comunidad te ayude.</p></div>'; return; }
+  if(!lista.length){
+    // Mensaje vacío con CTA según si hay búsqueda activa o no
+    const msg = busquedaActiva
+      ? `<div class="no-res">
+           <span class="no-res-emoji">🔍</span>
+           <p><strong>No hay mascotas en esta búsqueda</strong></p>
+           <p style="font-size:.85rem;margin-top:7px;color:#bbb">¿Perdiste o encontraste una mascota en esta zona?</p>
+           <button onclick="switchTab('publicar')" style="margin-top:16px;padding:11px 24px;background:var(--brand);color:#fff;border:none;border-radius:8px;font-family:'Nunito',sans-serif;font-weight:800;font-size:.9rem;cursor:pointer;">Publicar un aviso</button>
+         </div>`
+      : `<div class="no-res">
+           <span class="no-res-emoji">🐾</span>
+           <p><strong>Todavía no hay publicaciones</strong></p>
+           <p style="font-size:.85rem;margin-top:7px;color:#bbb">Sé el primero en publicar un aviso.</p>
+           <button onclick="switchTab('publicar')" style="margin-top:16px;padding:11px 24px;background:var(--brand);color:#fff;border:none;border-radius:8px;font-family:'Nunito',sans-serif;font-weight:800;font-size:.9rem;cursor:pointer;">Publicar un aviso</button>
+         </div>`;
+    g.innerHTML=msg; return;
+  }
   lista.forEach(m=>{
     const d=document.createElement("div"); d.className="pet-card"+(m.resuelta?" resuelta":"");
     const esOwner=currentUser&&m.publicadoPor===currentUser.uid;
     const esAdmin=!!sessionStorage.getItem("radar_admin");
     const puedeResolver=!m.resuelta&&(esOwner||esAdmin);
-    d.innerHTML=`<div class="pet-card-img-wrap"><img src="${m.fotos[0]}" alt="${m.nombre}" onerror="this.src='https://placehold.co/300x200/4A7C59/fff?text=${encodeURIComponent(m.tipo)}'"><div class="pet-card-overlay"></div><div class="pet-card-badges">${m.resuelta?'<span class="badge badge-resuelta">✅ Resuelta</span>':`<span class="badge badge-${m.estado.toLowerCase()}">${m.estado}</span>`}<span class="badge badge-tipo">${m.tipo}</span></div></div><div class="pet-card-body"><div class="pet-card-name">${m.nombre}</div><div class="pet-card-info">📍 ${m.localidad}</div>${m.edad?`<div class="pet-card-info">🎂 ${m.edad} año${m.edad>1?"s":""}</div>`:""}<div class="pet-card-info">🐾 ${m.raza||m.tipo}</div><div class="pet-card-date">Publicado ${m.fecha||""}</div></div><div class="pet-card-actions"><button class="btn-ver" onclick="openModal('${m.id}')">Ver más</button><button class="btn-wpp" onclick="irWpp('${m.contacto}','${m.nombre}','${m.localidad}')">💬</button><button class="btn-share" onclick="openShare('${m.id}')">🔁</button>${puedeResolver?`<button class="btn-resuelto" onclick="marcarResuelta('${m.id}','${m.nombre}')">✅</button>`:""}</div>`;
+    const fechaMostrar=m.ts ? fechaRelativa(m.ts) : (m.fecha||"");
+    d.innerHTML=`<div class="pet-card-img-wrap"><img src="${m.fotos[0]}" alt="${m.nombre}" onerror="this.src='https://placehold.co/300x200/4A7C59/fff?text=${encodeURIComponent(m.tipo)}'"><div class="pet-card-overlay"></div><div class="pet-card-badges">${m.resuelta?'<span class="badge badge-resuelta">✅ Resuelta</span>':`<span class="badge badge-${m.estado.toLowerCase()}">${m.estado}</span>`}<span class="badge badge-tipo">${m.tipo}</span></div></div><div class="pet-card-body"><div class="pet-card-name">${m.nombre}</div><div class="pet-card-info">📍 ${m.localidad}</div>${m.edad?`<div class="pet-card-info">🎂 ${m.edad} año${m.edad>1?"s":""}</div>`:""}<div class="pet-card-info">🐾 ${m.raza||m.tipo}</div><div class="pet-card-date">📅 ${fechaMostrar}</div></div><div class="pet-card-actions"><button class="btn-ver" onclick="openModal('${m.id}')">Ver más</button><button class="btn-wpp" onclick="irWpp('${m.contacto}','${m.nombre}','${m.localidad}')">💬</button><button class="btn-share" onclick="openShare('${m.id}')">🔁</button>${puedeResolver?`<button class="btn-resuelto" onclick="marcarResuelta('${m.id}','${m.nombre}')">✅</button>`:""}</div>`;
     g.appendChild(d);
   });
 }
 
-async function marcarResuelta(id,nombre){
+// ══ MIS PUBLICACIONES ══
+function renderMisPublicaciones(){
+  const g=document.getElementById("mis-resultados"); g.innerHTML="";
+  const uid=currentUser?currentUser.uid:"admin";
+  const mis=mascotas.filter(m=>m.publicadoPor===uid||(!currentUser&&m.publicadoPor==="admin"));
+  if(!mis.length){
+    g.innerHTML=`<div class="no-res"><span class="no-res-emoji">📢</span><p><strong>Todavía no publicaste ningún aviso</strong></p><button onclick="switchTab('publicar')" style="margin-top:16px;padding:11px 24px;background:var(--brand);color:#fff;border:none;border-radius:8px;font-family:'Nunito',sans-serif;font-weight:800;font-size:.9rem;cursor:pointer;">Publicar ahora</button></div>`;
+    return;
+  }
+  mis.forEach(m=>{
+    const d=document.createElement("div"); d.className="pet-card"+(m.resuelta?" resuelta":"");
+    const fechaMostrar=m.ts?fechaRelativa(m.ts):(m.fecha||"");
+    d.innerHTML=`<div class="pet-card-img-wrap"><img src="${m.fotos[0]}" alt="${m.nombre}" onerror="this.src='https://placehold.co/300x200/4A7C59/fff?text=${encodeURIComponent(m.tipo)}'"><div class="pet-card-overlay"></div><div class="pet-card-badges">${m.resuelta?'<span class="badge badge-resuelta">✅ Resuelta</span>':`<span class="badge badge-${m.estado.toLowerCase()}">${m.estado}</span>`}<span class="badge badge-tipo">${m.tipo}</span></div></div><div class="pet-card-body"><div class="pet-card-name">${m.nombre}</div><div class="pet-card-info">📍 ${m.localidad}</div>${m.edad?`<div class="pet-card-info">🎂 ${m.edad} año${m.edad>1?"s":""}</div>`:""}<div class="pet-card-info">🐾 ${m.raza||m.tipo}</div><div class="pet-card-date">📅 ${fechaMostrar}</div></div><div class="pet-card-actions"><button class="btn-ver" onclick="openModal('${m.id}')">Ver más</button>${!m.resuelta?`<button class="btn-resuelto" onclick="marcarResuelta('${m.id}','${m.nombre}')">✅ Resuelta</button>`:""}<button onclick="eliminarMiAviso('${m.id}','${m.nombre}')" style="padding:8px 10px;background:#C0392B;color:#fff;border:none;border-radius:7px;cursor:pointer;font-size:.72rem;font-weight:800;">🗑️</button></div>`;
+    g.appendChild(d);
+  });
+}
+
+async function eliminarMiAviso(id, nombre){
+  if(!confirm(`¿Eliminar el aviso de "${nombre}"?`)) return;
+  try{
+    await deleteDoc(doc(db,"mascotas",id));
+    toast(`🗑️ Aviso de "${nombre}" eliminado.`);
+    renderMisPublicaciones();
+  } catch(e){ toast("❌ No se pudo eliminar."); }
+}
   if(!confirm(`¿Confirmás que "${nombre}" ya fue encontrada?`)) return;
   try{ await updateDoc(doc(db,"mascotas",id),{resuelta:true}); toast(`✅ "${nombre}" marcada como resuelta. ¡Alegría!`); }
   catch(e){ toast("❌ No se pudo actualizar."); }
@@ -1074,7 +1148,8 @@ window.agregarResena=agregarResena; window.selChip=selChip; window.clearChip=cle
 window.cerrarPanelAdminView=cerrarPanelAdminView; window.resolverAdmin=resolverAdmin;
 window.eliminarMascotaAdmin=eliminarMascotaAdmin; window.eliminarResenaAdmin=eliminarResenaAdmin;
 window.mostrarAdmin=mostrarAdmin; window.toggleNav=toggleNav; window.closeMobileNav=closeMobileNav;
-window.resetearBusqueda=resetearBusqueda;
+window.resetearBusqueda=resetearBusqueda; window.eliminarMiAviso=eliminarMiAviso;
+window.renderMisPublicaciones=renderMisPublicaciones;
 </script>
 </body>
 </html>
