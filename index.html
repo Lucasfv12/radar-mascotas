@@ -71,13 +71,26 @@ nav.scrolled{background:rgba(30,43,34,.97);backdrop-filter:blur(14px);box-shadow
 .hero-content{position:relative;z-index:2;width:100%;display:flex;flex-direction:column;align-items:center;text-align:center;}
 .hero h1{font-family:'Playfair Display',serif;font-size:clamp(2.8rem,7vw,5.8rem);color:#fff;line-height:1.05;margin:0 auto 12px;text-align:center;animation:fadeD .7s .1s ease both;}
 .hero h1 em{font-style:italic;color:var(--accent2);}
-.hero-sub{font-size:1.05rem;color:rgba(255,255,255,.58);max-width:500px;margin:0 auto 28px;line-height:1.75;animation:fadeD .7s .2s ease both;}
-.hero-btns{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;align-items:center;margin:0 auto 48px;animation:fadeD .7s .3s ease both;}
-.btn-h1{padding:15px 36px;background:var(--brand);color:#fff;border:none;border-radius:8px;font-family:'Nunito',sans-serif;font-weight:800;font-size:1rem;cursor:pointer;box-shadow:0 6px 24px rgba(74,124,89,.4);transition:all .2s;}
+.hero-sub{font-size:1.05rem;color:rgba(255,255,255,.58);max-width:500px;margin:0 auto 20px;line-height:1.75;animation:fadeD .7s .2s ease both;}
+.hero-search{width:100%;max-width:560px;margin:0 auto;animation:fadeD .7s .3s ease both;}
+.hero-search-box{display:flex;gap:0;background:rgba(255,255,255,.97);border-radius:12px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.25);}
+.hero-search-box input{flex:1;padding:16px 20px;border:none;outline:none;font-family:'Nunito',sans-serif;font-size:1rem;color:var(--text);background:transparent;}
+.hero-search-box button{padding:14px 28px;background:var(--brand);color:#fff;border:none;font-family:'Nunito',sans-serif;font-weight:800;font-size:1rem;cursor:pointer;transition:background .2s;white-space:nowrap;}
+.hero-search-box button:hover{background:var(--brand2);}
+.hero-search-chip{display:none;align-items:center;gap:8px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;padding:7px 14px;border-radius:6px;font-weight:700;font-size:.86rem;margin:12px auto 0;width:fit-content;}
+.hero-search-chip button{background:rgba(255,255,255,.22);border:none;color:#fff;cursor:pointer;width:18px;height:18px;border-radius:50%;font-size:.75rem;display:flex;align-items:center;justify-content:center;}
+.hero-search-filters{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:14px;}
+.hero-filter-chip{padding:5px 14px;border-radius:20px;font-size:.78rem;font-weight:700;border:1.5px solid rgba(255,255,255,.25);color:rgba(255,255,255,.7);background:transparent;cursor:pointer;transition:all .2s;font-family:'Nunito',sans-serif;}
+.hero-filter-chip:hover,.hero-filter-chip.on{background:rgba(255,255,255,.15);border-color:rgba(255,255,255,.5);color:#fff;}
+.hero-btns{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;align-items:center;margin:20px auto 48px;animation:fadeD .7s .4s ease both;}
+.btn-h1{padding:13px 28px;background:var(--brand);color:#fff;border:none;border-radius:8px;font-family:'Nunito',sans-serif;font-weight:800;font-size:.95rem;cursor:pointer;box-shadow:0 6px 24px rgba(74,124,89,.4);transition:all .2s;}
 .btn-h1:hover{background:var(--brand2);transform:translateY(-2px);}
-.btn-h2{padding:14px 36px;background:transparent;border:1.5px solid rgba(255,255,255,.25);color:#fff;border-radius:8px;font-family:'Nunito',sans-serif;font-weight:800;font-size:1rem;cursor:pointer;transition:all .2s;}
+.btn-h2{padding:12px 28px;background:transparent;border:1.5px solid rgba(255,255,255,.25);color:#fff;border-radius:8px;font-family:'Nunito',sans-serif;font-weight:800;font-size:.95rem;cursor:pointer;transition:all .2s;}
 .btn-h2:hover{background:rgba(255,255,255,.08);}
 .hero-wave{position:absolute;bottom:-2px;left:0;right:0;z-index:3;}
+/* nav usuario */
+.nav-user-btn{color:rgba(255,255,255,.8);font-size:.82rem;font-weight:700;padding:6px 12px;border-radius:8px;cursor:pointer;transition:background .2s;background:rgba(255,255,255,.1);border:none;font-family:'Nunito',sans-serif;}
+.nav-user-btn:hover{background:rgba(255,255,255,.18);}
 .stats-section{background:var(--dark2);padding:36px 20px;display:flex;justify-content:center;flex-wrap:wrap;}
 .stat-box{flex:1 1 160px;text-align:center;padding:14px 28px;border-right:1px solid rgba(255,255,255,.07);max-width:220px;}
 .stat-box:last-child{border:none;}
@@ -335,11 +348,10 @@ footer strong{color:var(--accent2);}
     <span style="font-size:.52rem;color:rgba(255,255,255,.5);font-weight:600;letter-spacing:1.5px;text-transform:uppercase;margin-top:1px;">Rastreo de Animales Desaparecidos</span>
   </a>
   <div class="nav-links">
-    <span class="nav-user" id="nav-user-name"></span>
     <a href="#" onclick="showPage('main');return false">Inicio</a>
     <a href="#" onclick="showPage('info');return false">Reseñas</a>
     <a href="#" class="cta" onclick="accionAutenticada(()=>{ showPage('main');setTimeout(()=>switchTab('publicar'),300); });return false">Publicar</a>
-    <a href="#" id="nav-session-btn" onclick="manejarSesionNav();return false" style="color:rgba(255,255,255,.45);font-size:.8rem;border:1px solid rgba(255,255,255,.15);border-radius:7px;">Ingresar</a>
+    <span id="nav-user-area"></span>
   </div>
   <button class="nav-hamburger" id="hamburger" onclick="toggleNav()"><span></span><span></span><span></span></button>
 </nav>
@@ -356,9 +368,25 @@ footer strong{color:var(--accent2);}
   <div class="hero-content">
     <h1><em>RADAR</em></h1>
     <p class="hero-sub">Encontrá o reportá mascotas perdidas en toda Argentina.</p>
+    <div class="hero-search">
+      <div class="hero-search-box">
+        <input type="text" id="h-loc" placeholder="Escribí tu localidad o ciudad..." autocomplete="off">
+        <button onclick="buscarDesdeHero()">Buscar</button>
+      </div>
+      <div class="hero-search-chip" id="h-chip">
+        <span id="h-chip-txt"></span>
+        <button onclick="limpiarHeroSearch()">✕</button>
+      </div>
+      <div class="hero-search-filters">
+        <button class="hero-filter-chip on" data-tipo="Todos" onclick="selHeroFilter(this)">Todos</button>
+        <button class="hero-filter-chip" data-tipo="Perro" onclick="selHeroFilter(this)">🐶 Perro</button>
+        <button class="hero-filter-chip" data-tipo="Gato" onclick="selHeroFilter(this)">🐱 Gato</button>
+        <button class="hero-filter-chip" data-tipo="Perdida" onclick="selHeroFilter(this)">🔍 Perdidas</button>
+        <button class="hero-filter-chip" data-tipo="Encontrada" onclick="selHeroFilter(this)">✅ Encontradas</button>
+      </div>
+    </div>
     <div class="hero-btns">
-      <button class="btn-h1" onclick="goToApp('buscar')">Buscar mascota</button>
-      <button class="btn-h2" onclick="goToApp('publicar')">Publicar aviso</button>
+      <button class="btn-h2" onclick="accionAutenticada(()=>{ goToApp('publicar'); })">📢 Publicar aviso</button>
     </div>
   </div>
   <svg class="hero-wave" viewBox="0 0 1440 70" preserveAspectRatio="none"><path d="M0,35 C360,70 1080,0 1440,35 L1440,70 L0,70 Z" fill="#4A7C59"/></svg>
@@ -579,12 +607,53 @@ function manejarSesionNav(){
 
 function actualizarNavSesion(){
   const logueado=!!(currentUser||sessionStorage.getItem("radar_admin"));
-  const btn=document.getElementById("nav-session-btn");
+  const nombre=currentUser?(currentUser.displayName||currentUser.email):sessionStorage.getItem("radar_admin")?"Admin":null;
+  const area=document.getElementById("nav-user-area");
   const btnM=document.getElementById("nav-mobile-session-btn");
-  const nombre=currentUser?(currentUser.displayName||currentUser.email):sessionStorage.getItem("radar_admin")?"Administrador":null;
-  if(btn){ btn.textContent=logueado?"Salir":"Ingresar"; }
+  if(area){
+    if(logueado){
+      area.innerHTML=`<button class="nav-user-btn" onclick="goToApp('mis')">👤 ${nombre||""}</button><a href="#" onclick="cerrarSesion();return false" style="color:rgba(255,255,255,.35);font-size:.78rem;padding:6px 10px;border-radius:7px;border:1px solid rgba(255,255,255,.12);">Salir</a>`;
+    } else {
+      area.innerHTML=`<a href="#" onclick="mostrarLoginModal();return false" style="color:rgba(255,255,255,.45);font-size:.82rem;padding:6px 14px;border-radius:7px;border:1px solid rgba(255,255,255,.15);">Ingresar</a>`;
+    }
+  }
   if(btnM){ btnM.textContent=logueado?"Salir":"Ingresar"; }
-  document.getElementById("nav-user-name").textContent=logueado?"👋 "+(nombre||""):"";
+}
+
+// ── HERO SEARCH ──
+let _heroFiltroTipo="Todos", _heroFiltroEstado="Todos";
+let _heroAcTimer=null;
+
+function selHeroFilter(btn){
+  document.querySelectorAll(".hero-filter-chip").forEach(b=>b.classList.remove("on"));
+  btn.classList.add("on");
+  const v=btn.dataset.tipo;
+  if(v==="Perdida"||v==="Encontrada"){ _heroFiltroEstado=v; _heroFiltroTipo="Todos"; }
+  else { _heroFiltroTipo=v; _heroFiltroEstado="Todos"; }
+}
+
+function buscarDesdeHero(){
+  const v=document.getElementById("h-loc").value.trim();
+  if(!v&&!chips.b.ok){ toast("📍 Escribí una localidad para buscar"); return; }
+  // Si ya hay chip seleccionado, usar ese; si no, intentar buscar con texto libre
+  if(chips.b.ok){
+    // Sincronizar filtros del hero con los del panel buscar
+    if(_heroFiltroEstado!=="Todos") document.getElementById("f-estado").value=_heroFiltroEstado;
+    if(_heroFiltroTipo!=="Todos") document.getElementById("f-tipo").value=_heroFiltroTipo;
+    buscar();
+    document.getElementById("app").scrollIntoView({behavior:"smooth"});
+  } else {
+    toast("📍 Seleccioná una localidad de la lista desplegable");
+    document.getElementById("h-loc").focus();
+  }
+}
+
+function limpiarHeroSearch(){
+  document.getElementById("h-loc").value="";
+  document.getElementById("h-chip").style.display="none";
+  chips.b={ok:false,val:""};
+  document.getElementById("b-chip").style.display="none";
+  document.getElementById("b-loc").value="";
 }
 
 function entrarPublico(){
@@ -797,6 +866,58 @@ function setupAC(inputId,listId,chipKey){
 function selChip(k,val){ chips[k]={ok:true,val}; document.getElementById(k+"-chip-txt").textContent="📍 "+val; document.getElementById(k+"-chip").style.display="flex"; }
 function clearChip(k){ chips[k]={ok:false,val:""}; document.getElementById(k+"-chip").style.display="none"; const map={b:"b-loc",p:"p-loc"}; if(map[k]) document.getElementById(map[k]).value=""; }
 setupAC("b-loc","b-ac","b"); setupAC("p-loc","p-ac","p");
+
+// Autocomplete del hero — comparte chip con el panel buscar
+function setupHeroAC(){
+  const inp=document.getElementById("h-loc");
+  const list=document.getElementById("b-ac"); // reutiliza la misma lista
+  if(!inp) return;
+  inp.addEventListener("input",()=>{
+    const v=inp.value.trim();
+    chips.b.ok=false;
+    if(v.length<2){ list.style.display="none"; return; }
+    clearTimeout(_heroAcTimer);
+    _heroAcTimer=setTimeout(async()=>{
+      try{
+        const url=`https://apis.datos.gob.ar/georef/api/localidades?nombre=${encodeURIComponent(v)}&max=8&campos=nombre,provincia.nombre&orden=nombre`;
+        const res=await fetch(url); if(!res.ok) throw new Error();
+        const data=await res.json();
+        const locs=data.localidades||[];
+        list.innerHTML=""; if(!locs.length){ list.style.display="none"; return; }
+        // Posicionar la lista bajo el input del hero
+        const rect=inp.getBoundingClientRect();
+        list.style.position="fixed";
+        list.style.top=(rect.bottom+4)+"px";
+        list.style.left=rect.left+"px";
+        list.style.width=rect.width+"px";
+        list.style.zIndex="99999";
+        locs.forEach(loc=>{
+          const label=`${loc.nombre}, ${loc.provincia.nombre}`;
+          const d=document.createElement("div");
+          d.innerHTML=`<strong>${loc.nombre}</strong> <span style="font-size:.82rem;color:var(--muted);">${loc.provincia.nombre}</span>`;
+          d.onclick=()=>{
+            selChip("b",label);
+            // Sincronizar también el chip visual del hero
+            document.getElementById("h-loc").value="";
+            document.getElementById("h-chip").style.display="flex";
+            document.getElementById("h-chip-txt").textContent="📍 "+label;
+            list.style.display="none";
+          };
+          list.appendChild(d);
+        });
+        list.style.display="block";
+      } catch(e){
+        const m=LOCS.filter(l=>l.toLowerCase().includes(v.toLowerCase())).slice(0,8);
+        list.innerHTML=""; if(!m.length){ list.style.display="none"; return; }
+        m.forEach(loc=>{ const d=document.createElement("div"); d.textContent=loc; d.onclick=()=>{ selChip("b",loc); document.getElementById("h-loc").value=""; document.getElementById("h-chip").style.display="flex"; document.getElementById("h-chip-txt").textContent="📍 "+loc; list.style.display="none"; }; list.appendChild(d); });
+        list.style.display="block";
+      }
+    },300);
+  });
+  document.addEventListener("click",e=>{ if(!inp.contains(e.target)&&!list.contains(e.target)) list.style.display="none"; });
+  inp.addEventListener("keydown",e=>{ if(e.key==="Enter") buscarDesdeHero(); });
+}
+setupHeroAC();
 
 function comprimirImagen(file,cb){
   if(file.size>5*1024*1024){ toast("⚠️ La imagen supera los 5MB"); return; }
@@ -1051,7 +1172,8 @@ window.mostrarAdmin=mostrarAdmin; window.toggleNav=toggleNav; window.closeMobile
 window.resetearBusqueda=resetearBusqueda; window.eliminarMiAviso=eliminarMiAviso;
 window.renderMisPublicaciones=renderMisPublicaciones;
 window.accionAutenticada=accionAutenticada; window.cerrarLoginModal=cerrarLoginModal;
-window.manejarSesionNav=manejarSesionNav;
+window.manejarSesionNav=manejarSesionNav; window.buscarDesdeHero=buscarDesdeHero;
+window.selHeroFilter=selHeroFilter; window.limpiarHeroSearch=limpiarHeroSearch;
 </script>
 </body>
 </html>
