@@ -82,11 +82,11 @@ nav.scrolled{background:rgba(30,43,34,.97);backdrop-filter:blur(14px);box-shadow
 .hero-search-filters{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:14px;}
 .hero-filter-chip{padding:5px 14px;border-radius:20px;font-size:.78rem;font-weight:700;border:1.5px solid rgba(255,255,255,.25);color:rgba(255,255,255,.7);background:transparent;cursor:pointer;transition:all .2s;font-family:'Nunito',sans-serif;}
 .hero-filter-chip:hover,.hero-filter-chip.on{background:rgba(255,255,255,.15);border-color:rgba(255,255,255,.5);color:#fff;}
-.hero-btns{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;align-items:center;margin:20px auto 48px;animation:fadeD .7s .4s ease both;}
-.btn-h1{padding:13px 28px;background:var(--brand);color:#fff;border:none;border-radius:8px;font-family:'Nunito',sans-serif;font-weight:800;font-size:.95rem;cursor:pointer;box-shadow:0 6px 24px rgba(74,124,89,.4);transition:all .2s;}
+.hero-btns{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;align-items:center;margin:0 auto 48px;animation:fadeD .7s .3s ease both;}
+.btn-h1{padding:16px 36px;background:var(--brand);color:#fff;border:none;border-radius:50px;font-family:'Nunito',sans-serif;font-weight:800;font-size:1rem;cursor:pointer;box-shadow:0 6px 24px rgba(74,124,89,.4);transition:all .2s;}
 .btn-h1:hover{background:var(--brand2);transform:translateY(-2px);}
-.btn-h2{padding:12px 28px;background:transparent;border:1.5px solid rgba(255,255,255,.25);color:#fff;border-radius:8px;font-family:'Nunito',sans-serif;font-weight:800;font-size:.95rem;cursor:pointer;transition:all .2s;}
-.btn-h2:hover{background:rgba(255,255,255,.08);}
+.btn-h2{padding:15px 36px;background:transparent;border:2px solid rgba(232,194,122,.6);color:#E8C27A;border-radius:50px;font-family:'Nunito',sans-serif;font-weight:800;font-size:1rem;cursor:pointer;transition:all .2s;}
+.btn-h2:hover{background:rgba(232,194,122,.1);border-color:var(--accent2);}
 .hero-wave{position:absolute;bottom:-2px;left:0;right:0;z-index:3;}
 /* nav usuario */
 .nav-user-btn{color:rgba(255,255,255,.8);font-size:.82rem;font-weight:700;padding:6px 12px;border-radius:8px;cursor:pointer;transition:background .2s;background:rgba(255,255,255,.1);border:none;font-family:'Nunito',sans-serif;}
@@ -368,16 +368,9 @@ footer strong{color:var(--accent2);}
   <div class="hero-content">
     <h1><em>RADAR</em></h1>
     <p class="hero-sub">Encontrá o reportá mascotas perdidas en toda Argentina.</p>
-    <div class="hero-search">
-      <div class="hero-search-box">
-        <input type="text" id="h-loc" placeholder="Escribí tu localidad o ciudad..." autocomplete="off">
-        <button onclick="buscarDesdeHero()">Buscar</button>
-      </div>
-      <div class="ac-list" id="h-ac" style="position:absolute;width:100%;left:0;top:calc(100% + 4px);border-radius:10px;"></div>
-      <div class="hero-search-chip" id="h-chip">
-        <span id="h-chip-txt"></span>
-        <button onclick="limpiarHeroSearch()">✕</button>
-      </div>
+    <div class="hero-btns">
+      <button class="btn-h1" onclick="goToApp('buscar')">🔍 Busco mi mascota</button>
+      <button class="btn-h2" onclick="accionAutenticada(()=>{ goToApp('publicar'); })">🐾 Encontré una mascota</button>
     </div>
   </div>
   <svg class="hero-wave" viewBox="0 0 1440 70" preserveAspectRatio="none"><path d="M0,35 C360,70 1080,0 1440,35 L1440,70 L0,70 Z" fill="#4A7C59"/></svg>
