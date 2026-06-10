@@ -164,6 +164,8 @@ nav.scrolled{background:rgba(30,43,34,.97);backdrop-filter:blur(14px);box-shadow
 .btn-share:hover{border-color:var(--brand);color:var(--brand);}
 .btn-resuelto{width:38px;height:38px;background:#EAF3DE;color:#27500A;border:none;border-radius:50%;cursor:pointer;font-size:.8rem;font-weight:800;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0;}
 .btn-resuelto:hover{background:#27AE60;color:#fff;}
+.btn-reportar{width:32px;height:32px;background:transparent;color:var(--muted);border:0.5px solid var(--border);border-radius:50%;cursor:pointer;font-size:.78rem;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0;}
+.btn-reportar:hover{background:#FEF0F0;color:#C0392B;border-color:#C0392B;}
 .no-res{text-align:center;padding:60px 20px;color:var(--muted);width:100%;}
 .no-res-emoji{font-size:4rem;display:block;margin-bottom:12px;}
 .map-header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:16px;}
@@ -522,11 +524,37 @@ footer strong{color:var(--accent2);}
 
 <div class="toast" id="toast"></div>
 
+<!-- MODAL REPORTE -->
+<div class="modal" id="modal-reporte" style="z-index:2100;">
+  <div class="modal-box" style="max-width:380px;">
+    <button class="modal-close" onclick="closeReporte()">✕</button>
+    <div class="modal-body">
+      <h3 style="font-family:'Playfair Display',serif;font-size:1.4rem;color:var(--text);margin-bottom:6px;">Reportar aviso</h3>
+      <p style="font-size:.88rem;color:var(--muted);margin-bottom:20px;">¿Por qué querés reportar este aviso?</p>
+      <div id="reporte-opciones" style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px;">
+        <label style="display:flex;align-items:center;gap:10px;padding:10px 14px;border:1.5px solid var(--border);border-radius:9px;cursor:pointer;font-size:.92rem;font-weight:600;transition:border .2s;">
+          <input type="radio" name="motivo" value="falso" style="accent-color:var(--brand);"> Aviso falso o engañoso
+        </label>
+        <label style="display:flex;align-items:center;gap:10px;padding:10px 14px;border:1.5px solid var(--border);border-radius:9px;cursor:pointer;font-size:.92rem;font-weight:600;transition:border .2s;">
+          <input type="radio" name="motivo" value="spam"> Spam o repetido
+        </label>
+        <label style="display:flex;align-items:center;gap:10px;padding:10px 14px;border:1.5px solid var(--border);border-radius:9px;cursor:pointer;font-size:.92rem;font-weight:600;transition:border .2s;">
+          <input type="radio" name="motivo" value="inapropiado"> Contenido inapropiado
+        </label>
+        <label style="display:flex;align-items:center;gap:10px;padding:10px 14px;border:1.5px solid var(--border);border-radius:9px;cursor:pointer;font-size:.92rem;font-weight:600;transition:border .2s;">
+          <input type="radio" name="motivo" value="otro"> Otro motivo
+        </label>
+      </div>
+      <button onclick="enviarReporte()" style="width:100%;padding:13px;background:#C0392B;color:#fff;border:none;border-radius:9px;font-family:'Nunito',sans-serif;font-weight:800;font-size:1rem;cursor:pointer;">Enviar reporte</button>
+    </div>
+  </div>
+</div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
-import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, orderBy, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, orderBy, where, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAW_1Qt5v-1s2yx2YbVPlevKTPX5atLWGw",
@@ -690,7 +718,9 @@ function escucharMascotas(){
   if(unsub) unsub();
   const q=query(collection(db,"mascotas"),orderBy("ts","desc"));
   unsub=onSnapshot(q,snap=>{
-    mascotas=snap.docs.map(d=>({id:d.id,...d.data()}));
+    const esAdmin=!!sessionStorage.getItem("radar_admin");
+    mascotas=snap.docs.map(d=>({id:d.id,...d.data()}))
+      .filter(m=>esAdmin||!m.oculto); // admin ve todo, usuarios no ven ocultos
     actualizarStats();
     if(!busquedaActiva){ listaFiltrada=[...mascotas]; aplicarOrden(); }
     if(mapInstance) renderMapPins(document.querySelector(".map-filter-btn.on")?.dataset.f||"Todas");
@@ -1063,13 +1093,14 @@ function renderCards(lista){
     const esOwner=currentUser&&m.publicadoPor===currentUser.uid;
     const esAdmin=!!sessionStorage.getItem("radar_admin");
     const puedeResolver=!m.resuelta&&(esOwner||esAdmin);
+    const puedeReportar=!esOwner&&!esAdmin&&(currentUser||sessionStorage.getItem("radar_admin"))&&!m.resuelta;
     const fecha=m.ts?fechaRelativa(m.ts):(m.fecha||"");
     const emojiPlaceholder=m.tipo==="Gato"?"🐱":m.tipo==="Loro"?"🦜":m.tipo==="Conejo"?"🐰":"🐶";
     const fotoSrc=m.fotos[0].startsWith("data:")||m.fotos[0].startsWith("http")?m.fotos[0]:null;
     const imgHtml=fotoSrc
       ? `<img src="${fotoSrc}" alt="${m.nombre}" onerror="this.parentElement.innerHTML='<div style=\'width:100%;height:100%;background:#F1EFE8;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px\'><span style=\'font-size:2.8rem\'>${emojiPlaceholder}</span><span style=\'font-size:11px;color:#888\'>Sin foto</span></div>'">`
       : `<div style="width:100%;height:100%;background:#F1EFE8;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px"><span style="font-size:2.8rem">${emojiPlaceholder}</span><span style="font-size:11px;color:#888">Sin foto</span></div>`;
-    d.innerHTML=`<div class="pet-card-img-wrap">${imgHtml}<div class="pet-card-overlay"></div><div class="pet-card-badges">${m.resuelta?'<span class="badge badge-resuelta">✅ Resuelta</span>':`<span class="badge badge-${m.estado.toLowerCase()}">${m.estado}</span>`}<span class="badge badge-tipo">${m.tipo}</span></div></div><div class="pet-card-body"><div class="pet-card-name">${m.nombre}</div><div class="pet-card-info">📍 ${m.localidad}</div>${m.edad?`<div class="pet-card-info">🎂 ${m.edad} año${m.edad>1?"s":""}</div>`:""}<div class="pet-card-info">🐾 ${m.raza||m.tipo}</div><div class="pet-card-date">📅 ${fecha}</div></div><div class="pet-card-actions"><button class="btn-ver" onclick="openModal('${m.id}')">Ver más</button><div class="btn-actions-divider"></div><button class="btn-wpp" onclick="irWpp('${m.contacto}','${m.nombre}','${m.localidad}')">💬</button><button class="btn-share" onclick="openShare('${m.id}')">🔁</button>${puedeResolver?`<button class="btn-resuelto" onclick="marcarResuelta('${m.id}','${m.nombre}')">✅</button>`:""}</div>`;
+    d.innerHTML=`<div class="pet-card-img-wrap">${imgHtml}<div class="pet-card-overlay"></div><div class="pet-card-badges">${m.resuelta?'<span class="badge badge-resuelta">✅ Resuelta</span>':`<span class="badge badge-${m.estado.toLowerCase()}">${m.estado}</span>`}<span class="badge badge-tipo">${m.tipo}</span></div></div><div class="pet-card-body"><div class="pet-card-name">${m.nombre}</div><div class="pet-card-info">📍 ${m.localidad}</div>${m.edad?`<div class="pet-card-info">🎂 ${m.edad} año${m.edad>1?"s":""}</div>`:""}<div class="pet-card-info">🐾 ${m.raza||m.tipo}</div><div class="pet-card-date">📅 ${fecha}</div></div><div class="pet-card-actions"><button class="btn-ver" onclick="openModal('${m.id}')">Ver más</button><div class="btn-actions-divider"></div><button class="btn-wpp" onclick="irWpp('${m.contacto}','${m.nombre}','${m.localidad}')">💬</button><button class="btn-share" onclick="openShare('${m.id}')">🔁</button>${puedeResolver?`<button class="btn-resuelto" onclick="marcarResuelta('${m.id}','${m.nombre}')">✅</button>`:""}${puedeReportar?`<button class="btn-reportar" onclick="abrirReporte('${m.id}')" title="Reportar aviso">🚩</button>`:""}</div>`;
     g.appendChild(d);
   });
 }
@@ -1090,7 +1121,51 @@ function renderMisPublicaciones(){
   });
 }
 
-async function eliminarMiAviso(id,nombre){
+// ══ REPORTES ══
+let _reporteMascotaId=null;
+
+function abrirReporte(id){
+  accionAutenticada(()=>{
+    _reporteMascotaId=id;
+    document.querySelectorAll('#modal-reporte input[name="motivo"]').forEach(r=>r.checked=false);
+    document.getElementById("modal-reporte").classList.add("open");
+    lockScroll();
+  });
+}
+
+function closeReporte(){
+  document.getElementById("modal-reporte").classList.remove("open");
+  unlockScroll();
+  _reporteMascotaId=null;
+}
+
+async function enviarReporte(){
+  const motivo=document.querySelector('#modal-reporte input[name="motivo"]:checked')?.value;
+  if(!motivo){ toast("⚠️ Elegí un motivo para el reporte"); return; }
+  if(!_reporteMascotaId) return;
+  try{
+    // Guardar reporte en Firestore
+    await addDoc(collection(db,"reportes"),{
+      mascotaId: _reporteMascotaId,
+      motivo,
+      reportadoPor: currentUser?.uid||"admin",
+      ts: serverTimestamp()
+    });
+    // Contar reportes del aviso — si llega a 3, ocultarlo automáticamente
+    const snap=await getDocs(query(collection(db,"reportes"),where("mascotaId","==",_reporteMascotaId)));
+    if(snap.size>=3){
+      await updateDoc(doc(db,"mascotas",_reporteMascotaId),{oculto:true});
+      toast("🚩 Aviso reportado. Fue ocultado automáticamente para revisión del admin.");
+    } else {
+      toast(`🚩 Reporte enviado. (${snap.size}/3 reportes para ocultar automáticamente)`);
+    }
+    closeReporte();
+  } catch(e){ toast("❌ No se pudo enviar el reporte."); console.error(e); }
+}
+
+document.getElementById("modal-reporte").addEventListener("click",e=>{
+  if(e.target===document.getElementById("modal-reporte")) closeReporte();
+});
   if(!confirm(`¿Eliminar el aviso de "${nombre}"?`)) return;
   try{ await deleteDoc(doc(db,"mascotas",id)); toast(`🗑️ Aviso de "${nombre}" eliminado.`); renderMisPublicaciones(); }
   catch(e){ toast("❌ No se pudo eliminar."); }
@@ -1205,10 +1280,32 @@ function mostrarAdmin(){
     h+=`</tbody></table>`;
   }
   h+=`</div></div></div></div>`;
+  // Cargar reportes para el panel admin
+  getDocs(query(collection(db,"reportes"),orderBy("ts","desc"))).then(rSnap=>{
+    const reportes=rSnap.docs.map(d=>({id:d.id,...d.data()}));
+    const panel=document.getElementById("adm-panel");
+    if(!panel) return;
+    let rh=`<div style="${s.section}"><h2 style="${s.secTitle}">🚩 Reportes (${reportes.length})</h2><div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:14px;overflow:auto;">`;
+    if(!reportes.length){ rh+=s.nodata; }
+    else{
+      rh+=`<table style="${s.table}"><thead><tr>${["Aviso","Motivo","Reportado por","Fecha","Acciones"].map(c=>`<th style="${s.th}">${c}</th>`).join("")}</tr></thead><tbody>`;
+      reportes.forEach((r,i)=>{
+        const m=mascotas.find(x=>x.id===r.mascotaId);
+        const bg=i%2===0?"rgba(255,255,255,.015)":"transparent";
+        const motivoLabel={falso:"Aviso falso",spam:"Spam",inapropiado:"Inapropiado",otro:"Otro"}[r.motivo]||r.motivo;
+        rh+=`<tr style="background:${bg}"><td style="${s.td};color:#fff;font-weight:700;">${m?m.nombre:"Aviso eliminado"} ${m?.oculto?'<span style="font-size:.7rem;background:rgba(192,57,43,.3);color:#ff7a6e;padding:2px 6px;border-radius:4px;">OCULTO</span>':""}</td><td style="${s.td}">${s.badge(motivoLabel,"#C0392B")}</td><td style="${s.td};color:rgba(255,255,255,.45);font-size:.78rem;">${r.reportadoPor||"-"}</td><td style="${s.td};color:rgba(255,255,255,.35);font-size:.78rem;">${r.ts?.seconds?new Date(r.ts.seconds*1000).toLocaleDateString("es-AR"):""}</td><td style="${s.td};display:flex;gap:5px;">${m&&m.oculto?`<button style="${s.btnOk}" onclick="restaurarAviso('${m.id}')">Restaurar</button>`:m?`<button style="${s.btnDel}" onclick="eliminarMascotaAdmin('${m.id}')">Eliminar aviso</button>`:""}<button style="${s.btnDel}" onclick="eliminarReporteAdmin('${r.id}')">Borrar reporte</button></td></tr>`;
+      });
+      rh+=`</tbody></table>`;
+    }
+    rh+=`</div></div>`;
+    panel.querySelector(`div[style*="max-width:1100px"]`).insertAdjacentHTML("beforeend",rh);
+  }).catch(()=>{});
   const div=document.createElement("div"); div.innerHTML=h; document.body.appendChild(div.firstChild);
 }
 function cerrarPanelAdminView(){ const p=document.getElementById("adm-panel"); if(p) p.remove(); }
 async function resolverAdmin(id){ try{ await updateDoc(doc(db,"mascotas",id),{resuelta:true}); toast("✅ Marcada como resuelta."); } catch(e){ toast("❌ Error al actualizar."); } }
+async function restaurarAviso(id){ try{ await updateDoc(doc(db,"mascotas",id),{oculto:false}); toast("✅ Aviso restaurado y visible nuevamente."); mostrarAdmin(); } catch(e){ toast("❌ Error al restaurar."); } }
+async function eliminarReporteAdmin(id){ try{ await deleteDoc(doc(db,"reportes",id)); toast("Reporte eliminado."); mostrarAdmin(); } catch(e){ toast("❌ Error al eliminar."); } }
 async function eliminarMascotaAdmin(id){ if(!confirm("¿Eliminar esta publicación?"))return; try{ await deleteDoc(doc(db,"mascotas",id)); toast("Publicación eliminada."); } catch(e){ toast("❌ Error al eliminar."); } }
 async function eliminarResenaAdmin(id){ if(!id||id==="undefined"){ toast("⚠️ Esta reseña es demo y no se puede eliminar."); return; } if(!confirm("¿Eliminar esta reseña?"))return; try{ await deleteDoc(doc(db,"resenas",id)); resenas=resenas.filter(r=>r.id!==id); renderResenas(); toast("Reseña eliminada."); if(document.getElementById("adm-panel")) mostrarAdmin(); } catch(e){ toast("❌ Error al eliminar."); } }
 
@@ -1229,6 +1326,8 @@ window.renderMisPublicaciones=renderMisPublicaciones;
 window.accionAutenticada=accionAutenticada; window.cerrarLoginModal=cerrarLoginModal;
 window.manejarSesionNav=manejarSesionNav; window.buscarDesdeHero=buscarDesdeHero;
 window.selHeroFilter=selHeroFilter; window.limpiarHeroSearch=limpiarHeroSearch;
+window.abrirReporte=abrirReporte; window.closeReporte=closeReporte; window.enviarReporte=enviarReporte;
+window.restaurarAviso=restaurarAviso; window.eliminarReporteAdmin=eliminarReporteAdmin;
 </script>
 </body>
 </html>
