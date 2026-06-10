@@ -1166,6 +1166,8 @@ async function enviarReporte(){
 document.getElementById("modal-reporte").addEventListener("click",e=>{
   if(e.target===document.getElementById("modal-reporte")) closeReporte();
 });
+
+async function eliminarMiAviso(id,nombre){
   if(!confirm(`¿Eliminar el aviso de "${nombre}"?`)) return;
   try{ await deleteDoc(doc(db,"mascotas",id)); toast(`🗑️ Aviso de "${nombre}" eliminado.`); renderMisPublicaciones(); }
   catch(e){ toast("❌ No se pudo eliminar."); }
