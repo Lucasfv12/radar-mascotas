@@ -88,7 +88,14 @@ nav.scrolled{background:rgba(30,43,34,.97);backdrop-filter:blur(14px);box-shadow
 .btn-h2{padding:15px 36px;background:transparent;border:2px solid rgba(232,194,122,.6);color:#E8C27A;border-radius:50px;font-family:'Nunito',sans-serif;font-weight:800;font-size:1rem;cursor:pointer;transition:all .2s;}
 .btn-h2:hover{background:rgba(232,194,122,.1);border-color:var(--accent2);}
 .hero-wave{position:absolute;bottom:-2px;left:0;right:0;z-index:3;}
-/* nav usuario */
+/* ── CARRUSEL HERO ── */
+.hero-carousel{position:absolute;inset:0;z-index:0;}
+.hero-slide{position:absolute;inset:0;opacity:0;transition:opacity 1.4s ease;background-size:cover;background-position:center;}
+.hero-slide.active{opacity:1;}
+.hero-overlay{position:absolute;inset:0;background:linear-gradient(165deg,rgba(15,26,18,.80) 0%,rgba(30,43,34,.68) 45%,rgba(22,42,30,.75) 100%);}
+.hero-dots{position:absolute;bottom:80px;left:50%;transform:translateX(-50%);display:flex;gap:8px;z-index:4;}
+.hero-dot{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.35);cursor:pointer;transition:all .35s;border:none;padding:0;}
+.hero-dot.on{background:var(--accent2);width:22px;border-radius:4px;}
 .nav-user-btn{color:rgba(255,255,255,.8);font-size:.82rem;font-weight:700;padding:6px 12px;border-radius:8px;cursor:pointer;transition:background .2s;background:rgba(255,255,255,.1);border:none;font-family:'Nunito',sans-serif;}
 .nav-user-btn:hover{background:rgba(255,255,255,.18);}
 .stats-section{background:var(--dark2);padding:36px 20px;display:flex;justify-content:center;flex-wrap:wrap;}
@@ -366,7 +373,21 @@ footer strong{color:var(--accent2);}
 
 <div id="page-main" style="position:relative;z-index:1;">
 <section class="hero">
-  <div class="hero-bg"></div><div class="hero-orb orb1"></div><div class="hero-orb orb2"></div>
+  <div class="hero-carousel" id="hero-carousel">
+    <div class="hero-slide active" style="background-image:url('./hero1.jpg')"></div>
+    <div class="hero-slide" style="background-image:url('./hero2.jpg')"></div>
+    <div class="hero-slide" style="background-image:url('./hero3.jpg')"></div>
+    <div class="hero-slide" style="background-image:url('./hero4.jpg')"></div>
+    <div class="hero-slide" style="background-image:url('./hero5.jpg')"></div>
+    <div class="hero-overlay"></div>
+  </div>
+  <div class="hero-dots" id="hero-dots">
+    <button class="hero-dot on" onclick="irSlide(0)"></button>
+    <button class="hero-dot" onclick="irSlide(1)"></button>
+    <button class="hero-dot" onclick="irSlide(2)"></button>
+    <button class="hero-dot" onclick="irSlide(3)"></button>
+    <button class="hero-dot" onclick="irSlide(4)"></button>
+  </div>
   <div class="hero-content">
     <h1><em>RADAR</em></h1>
     <p class="hero-sub">Encontrá o reportá mascotas perdidas en toda Argentina.</p>
@@ -838,7 +859,19 @@ function switchTab(t){
   if(t==="mis") renderMisPublicaciones();
 }
 
-// ── AUTOCOMPLETE con API georef.datos.gob.ar ──
+// ── CARRUSEL HERO ──
+let _heroSlide=0;
+const _heroTotal=5;
+function irSlide(n){
+  const slides=document.querySelectorAll(".hero-slide");
+  const dots=document.querySelectorAll(".hero-dot");
+  slides[_heroSlide].classList.remove("active");
+  dots[_heroSlide].classList.remove("on");
+  _heroSlide=n;
+  slides[_heroSlide].classList.add("active");
+  dots[_heroSlide].classList.add("on");
+}
+setInterval(()=>irSlide((_heroSlide+1)%_heroTotal),4500);
 let _acTimers={};
 function setupAC(inputId,listId,chipKey){
   const inp=document.getElementById(inputId),list=document.getElementById(listId);
@@ -1330,6 +1363,7 @@ window.manejarSesionNav=manejarSesionNav; window.buscarDesdeHero=buscarDesdeHero
 window.selHeroFilter=selHeroFilter; window.limpiarHeroSearch=limpiarHeroSearch;
 window.abrirReporte=abrirReporte; window.closeReporte=closeReporte; window.enviarReporte=enviarReporte;
 window.restaurarAviso=restaurarAviso; window.eliminarReporteAdmin=eliminarReporteAdmin;
+window.irSlide=irSlide;
 </script>
 </body>
 </html>
