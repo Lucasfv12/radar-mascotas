@@ -173,7 +173,11 @@ nav.scrolled{background:rgba(30,43,34,.97);backdrop-filter:blur(14px);box-shadow
 .btn-resuelto:hover{background:#27AE60;color:#fff;}
 .btn-reportar{width:32px;height:32px;background:transparent;color:var(--muted);border:0.5px solid var(--border);border-radius:50%;cursor:pointer;font-size:.78rem;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0;}
 .btn-reportar:hover{background:#FEF0F0;color:#C0392B;border-color:#C0392B;}
-.no-res{text-align:center;padding:60px 20px;color:var(--muted);width:100%;}
+/* ── SCROLL REVEAL ── */
+.pet-card{opacity:0;transform:translateY(28px);transition:opacity .5s ease,transform .5s ease;}
+.pet-card.visible{opacity:1;transform:translateY(0);}
+.pet-card.resuelta{opacity:0;transform:translateY(28px);}
+.pet-card.resuelta.visible{opacity:.55;transform:translateY(0);}
 .no-res-emoji{font-size:4rem;display:block;margin-bottom:12px;}
 .map-header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:16px;}
 .map-header h2{font-family:'Playfair Display',serif;font-size:1.5rem;color:var(--text);}
@@ -206,20 +210,23 @@ nav.scrolled{background:rgba(30,43,34,.97);backdrop-filter:blur(14px);box-shadow
 .sb-wpp{background:#E8FEF0;color:#1a7a3c;}.sb-fb{background:#E8EEF8;color:#1a56b0;}.sb-ig{background:#FEF0F8;color:#c13584;}.sb-copy{background:var(--fondo);color:var(--muted);}
 .share-link{margin-top:14px;background:var(--fondo);border-radius:8px;padding:10px 13px;font-size:.8rem;color:var(--muted);word-break:break-all;text-align:left;font-weight:600;}
 .share-close{margin-top:14px;background:none;border:1.5px solid var(--border);border-radius:7px;padding:8px 20px;cursor:pointer;font-family:'Nunito',sans-serif;font-weight:700;color:var(--muted);}
-.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:2000;justify-content:center;align-items:center;padding:20px;}
+.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:2000;justify-content:center;align-items:center;padding:20px;}
 .modal.open{display:flex;}
 .modal-box{background:#fff;border-radius:20px;max-width:470px;width:100%;max-height:92vh;overflow-y:auto;position:relative;animation:popIn .3s ease both;}
-.modal-imgs{display:flex;gap:6px;padding:7px;}
-.modal-img{flex:1;height:200px;border-radius:12px;object-fit:cover;}
-.modal-body{padding:20px;}
-.modal-close{position:absolute;top:13px;right:15px;background:rgba(0,0,0,.38);color:#fff;border:none;border-radius:50%;width:32px;height:32px;font-size:16px;cursor:pointer;z-index:10;display:flex;align-items:center;justify-content:center;}
-.modal-title{font-family:'Playfair Display',serif;font-size:1.9rem;color:var(--text);margin:10px 0 7px;}
+.modal-hero-img{width:100%;height:260px;object-fit:cover;display:block;border-radius:20px 20px 0 0;}
+.modal-hero-fade{position:absolute;top:180px;left:0;right:0;height:80px;background:linear-gradient(to bottom,transparent,#fff);}
+.modal-hero-badges{position:absolute;top:14px;left:14px;display:flex;gap:5px;flex-wrap:wrap;}
+.modal-close{position:absolute;top:13px;right:13px;background:rgba(0,0,0,.45);color:#fff;border:none;border-radius:50%;width:32px;height:32px;font-size:16px;cursor:pointer;z-index:10;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);}
+.modal-imgs-extra{display:flex;gap:6px;padding:0 16px 12px;}
+.modal-img-extra{flex:1;height:80px;border-radius:10px;object-fit:cover;}
+.modal-body{padding:0 20px 20px;}
+.modal-title{font-family:'Playfair Display',serif;font-size:1.9rem;color:var(--text);margin:0 0 10px;}
 .modal-row{display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);font-size:.92rem;font-weight:600;}
 .modal-row:last-of-type{border:none;}
 .m-icon{font-size:1rem;min-width:22px;}
 .modal-actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:16px;}
-.btn-modal-wpp{flex:1;padding:13px;background:#25D366;color:#fff;border:none;border-radius:10px;font-family:'Nunito',sans-serif;font-weight:800;font-size:1rem;cursor:pointer;}
-.btn-modal-share{padding:13px 16px;background:var(--dark2);color:#fff;border:none;border-radius:10px;font-family:'Nunito',sans-serif;font-weight:800;font-size:.9rem;cursor:pointer;}
+.btn-modal-wpp{flex:1;padding:13px;background:#25D366;color:#fff;border:none;border-radius:24px;font-family:'Nunito',sans-serif;font-weight:800;font-size:1rem;cursor:pointer;}
+.btn-modal-share{padding:13px 16px;background:var(--dark2);color:#fff;border:none;border-radius:24px;font-family:'Nunito',sans-serif;font-weight:800;font-size:.9rem;cursor:pointer;}
 .reviews-section{padding:80px 20px;background:var(--dark);position:relative;overflow:hidden;}
 .reviews-section::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 15% 80%,rgba(74,124,89,.14),transparent 55%),radial-gradient(ellipse at 85% 20%,rgba(200,130,58,.08),transparent 55%);}
 .reviews-section .section-title{color:#fff;position:relative;}
@@ -859,6 +866,23 @@ function switchTab(t){
   if(t==="mis") renderMisPublicaciones();
 }
 
+// ── SCROLL REVEAL ──
+const _revealObserver = new IntersectionObserver((entries)=>{
+  entries.forEach((entry,i)=>{
+    if(entry.isIntersecting){
+      // Delay en cascada según posición de la card en su fila
+      const cards=[...entry.target.parentElement.children];
+      const idx=cards.indexOf(entry.target);
+      setTimeout(()=>entry.target.classList.add("visible"), (idx%3)*120);
+      _revealObserver.unobserve(entry.target);
+    }
+  });
+},{ threshold:0.1 });
+
+function observarCards(){
+  document.querySelectorAll(".pet-card:not(.visible)").forEach(c=>_revealObserver.observe(c));
+}
+
 // ── CARRUSEL HERO ──
 let _heroSlide=0;
 const _heroTotal=5;
@@ -1136,6 +1160,7 @@ function renderCards(lista){
     d.innerHTML=`<div class="pet-card-img-wrap">${imgHtml}<div class="pet-card-overlay"></div><div class="pet-card-badges">${m.resuelta?'<span class="badge badge-resuelta">✅ Resuelta</span>':`<span class="badge badge-${m.estado.toLowerCase()}">${m.estado}</span>`}<span class="badge badge-tipo">${m.tipo}</span></div></div><div class="pet-card-body"><div class="pet-card-name">${m.nombre}</div><div class="pet-card-info">📍 ${m.localidad}</div>${m.edad?`<div class="pet-card-info">🎂 ${m.edad} año${m.edad>1?"s":""}</div>`:""}<div class="pet-card-info">🐾 ${m.raza||m.tipo}</div><div class="pet-card-date">📅 ${fecha}</div></div><div class="pet-card-actions"><button class="btn-ver" onclick="openModal('${m.id}')">Ver más</button><div class="btn-actions-divider"></div><button class="btn-wpp" onclick="irWpp('${m.contacto}','${m.nombre}','${m.localidad}')">💬</button><button class="btn-share" onclick="openShare('${m.id}')">🔁</button>${puedeResolver?`<button class="btn-resuelto" onclick="marcarResuelta('${m.id}','${m.nombre}')">✅</button>`:""}${puedeReportar?`<button class="btn-reportar" onclick="abrirReporte('${m.id}')" title="Reportar aviso">🚩</button>`:""}</div>`;
     g.appendChild(d);
   });
+  observarCards();
 }
 
 function renderMisPublicaciones(){
@@ -1152,6 +1177,7 @@ function renderMisPublicaciones(){
     d.innerHTML=`<div class="pet-card-img-wrap"><img src="${m.fotos[0]}" alt="${m.nombre}" onerror="this.src='https://placehold.co/300x200/4A7C59/fff?text=${encodeURIComponent(m.tipo)}'"><div class="pet-card-overlay"></div><div class="pet-card-badges">${m.resuelta?'<span class="badge badge-resuelta">✅ Resuelta</span>':`<span class="badge badge-${m.estado.toLowerCase()}">${m.estado}</span>`}<span class="badge badge-tipo">${m.tipo}</span></div></div><div class="pet-card-body"><div class="pet-card-name">${m.nombre}</div><div class="pet-card-info">📍 ${m.localidad}</div>${m.edad?`<div class="pet-card-info">🎂 ${m.edad} año${m.edad>1?"s":""}</div>`:""}<div class="pet-card-info">🐾 ${m.raza||m.tipo}</div><div class="pet-card-date">📅 ${fecha}</div></div><div class="pet-card-actions"><button class="btn-ver" onclick="openModal('${m.id}')">Ver más</button>${!m.resuelta?`<button class="btn-resuelto" onclick="marcarResuelta('${m.id}','${m.nombre}')">✅ Resuelta</button>`:""}<button onclick="eliminarMiAviso('${m.id}','${m.nombre}')" style="padding:8px 10px;background:#C0392B;color:#fff;border:none;border-radius:7px;cursor:pointer;font-size:.72rem;font-weight:800;">🗑️</button></div>`;
     g.appendChild(d);
   });
+  observarCards();
 }
 
 // ══ REPORTES ══
@@ -1219,8 +1245,17 @@ function unlockScroll(){ _overlaysOpen=Math.max(0,_overlaysOpen-1); if(_overlays
 function openModal(id){
   const m=mascotas.find(x=>x.id===id); if(!m) return;
   modalPetId=id; lockScroll();
-  document.getElementById("m-imgs").innerHTML=m.fotos.map(f=>`<img class="modal-img" src="${f}" onerror="this.src='https://placehold.co/300x200/4A7C59/fff?text=${encodeURIComponent(m.tipo)}'">`).join("");
-  document.getElementById("m-badges").innerHTML=`<span class="badge badge-${m.resuelta?"resuelta":m.estado.toLowerCase()}">${m.resuelta?"✅ Resuelta":m.estado}</span><span class="badge badge-tipo">${m.tipo}</span>`;
+  const fotoPrincipal=m.fotos[0]||"";
+  const fotoExtra=m.fotos[1]?`<div class="modal-imgs-extra"><img class="modal-img-extra" src="${m.fotos[1]}" onerror="this.parentElement.style.display='none'"></div>`:"";
+  const badgeEstado=m.resuelta?'<span class="badge badge-resuelta">✅ Resuelta</span>':`<span class="badge badge-${m.estado.toLowerCase()}">${m.estado}</span>`;
+  document.getElementById("m-imgs").innerHTML=`
+    <div style="position:relative;">
+      <img class="modal-hero-img" src="${fotoPrincipal}" onerror="this.style.background='#F1EFE8';this.removeAttribute('src')" alt="${m.nombre}">
+      <div class="modal-hero-fade"></div>
+      <div class="modal-hero-badges">${badgeEstado}<span class="badge badge-tipo">${m.tipo}</span></div>
+    </div>
+    ${fotoExtra}`;
+  document.getElementById("m-badges").innerHTML="";
   document.getElementById("m-name").textContent=m.nombre;
   document.getElementById("m-rows").innerHTML=[[m.localidad,"📍","Localidad"],[m.edad?m.edad+" año"+(m.edad>1?"s":""):null,"🎂","Edad"],[m.raza,"🐾","Raza / Color"],[m.desc,"💬","Descripción"],[m.contacto,"📞","Contacto"],[m.fecha,"📅","Publicado"]].filter(r=>r[0]).map(r=>`<div class="modal-row"><span class="m-icon">${r[1]}</span><span><strong>${r[2]}:</strong> ${r[0]}</span></div>`).join("");
   document.getElementById("m-wpp").onclick=()=>irWpp(m.contacto,m.nombre,m.localidad);
