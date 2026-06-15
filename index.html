@@ -173,7 +173,43 @@ nav.scrolled{background:rgba(30,43,34,.97);backdrop-filter:blur(14px);box-shadow
 .btn-resuelto:hover{background:#27AE60;color:#fff;}
 .btn-reportar{width:32px;height:32px;background:transparent;color:var(--muted);border:0.5px solid var(--border);border-radius:50%;cursor:pointer;font-size:.78rem;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0;}
 .btn-reportar:hover{background:#FEF0F0;color:#C0392B;border-color:#C0392B;}
-/* ── SCROLL REVEAL ── */
+/* ── LAYOUT EDITORIAL ── */
+.cards-editorial{width:100%;}
+.ed-row-top{display:grid;grid-template-columns:1.9fr 1fr;gap:14px;margin-bottom:14px;}
+.ed-card-hero{border-radius:16px;overflow:hidden;position:relative;height:280px;box-shadow:0 8px 28px rgba(0,0,0,.15);cursor:pointer;flex-shrink:0;}
+.ed-card-hero img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .4s;}
+.ed-card-hero:hover img{transform:scale(1.04);}
+.ed-card-hero-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.72) 0%,rgba(0,0,0,.1) 55%,transparent 100%);}
+.ed-card-hero-body{position:absolute;bottom:0;left:0;right:0;padding:18px;}
+.ed-card-hero-name{font-family:'Playfair Display',serif;font-size:1.5rem;color:#fff;margin:6px 0 4px;line-height:1.15;}
+.ed-card-hero-info{font-size:.8rem;color:rgba(255,255,255,.75);font-weight:600;margin-bottom:10px;}
+.ed-card-hero-actions{display:flex;gap:7px;}
+.ed-card-hero-btn{padding:8px 18px;background:#4A7C59;color:#fff;border:none;border-radius:20px;font-family:'Nunito',sans-serif;font-weight:800;font-size:.82rem;cursor:pointer;}
+.ed-card-hero-wpp{width:34px;height:34px;background:rgba(37,211,102,.9);color:#fff;border:none;border-radius:50%;cursor:pointer;font-size:.9rem;display:flex;align-items:center;justify-content:center;}
+.ed-side-cards{display:flex;flex-direction:column;gap:10px;}
+.ed-card-side{border-radius:12px;overflow:hidden;background:#fff;box-shadow:0 3px 14px rgba(0,0,0,.08);display:flex;cursor:pointer;transition:transform .2s,box-shadow .2s;}
+.ed-card-side:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.12);}
+.ed-card-side img{width:90px;height:90px;object-fit:cover;flex-shrink:0;}
+.ed-card-side-body{padding:10px 12px;display:flex;flex-direction:column;justify-content:center;gap:4px;}
+.ed-card-side-name{font-family:'Playfair Display',serif;font-size:1rem;color:var(--text);line-height:1.2;}
+.ed-card-side-info{font-size:.76rem;color:var(--muted);font-weight:600;}
+.ed-card-side-actions{display:flex;gap:5px;margin-top:4px;}
+.ed-card-side-btn{padding:5px 12px;background:var(--brand);color:#fff;border:none;border-radius:20px;font-size:.72rem;font-weight:800;cursor:pointer;}
+.ed-row-bottom{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+.ed-card-med{border-radius:14px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,.08);background:#fff;cursor:pointer;transition:transform .2s,box-shadow .2s;}
+.ed-card-med:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,.12);}
+.ed-card-med img{width:100%;height:120px;object-fit:cover;display:block;transition:transform .3s;}
+.ed-card-med:hover img{transform:scale(1.04);}
+.ed-card-med-body{padding:10px 12px 12px;}
+.ed-card-med-name{font-family:'Playfair Display',serif;font-size:1rem;color:var(--text);margin:4px 0 3px;}
+.ed-card-med-info{font-size:.75rem;color:var(--muted);font-weight:600;margin-bottom:8px;}
+.ed-card-med-btn{width:100%;padding:7px;background:var(--brand);color:#fff;border:none;border-radius:20px;font-family:'Nunito',sans-serif;font-weight:800;font-size:.78rem;cursor:pointer;}
+/* responsive editorial */
+@media(max-width:600px){
+  .ed-row-top{grid-template-columns:1fr;}
+  .ed-card-hero{height:220px;}
+  .ed-row-bottom{grid-template-columns:1fr 1fr;}
+}
 .pet-card{opacity:0;transform:translateY(28px);transition:opacity .5s ease,transform .5s ease;}
 .pet-card.visible{opacity:1;transform:translateY(0);}
 .pet-card.resuelta{opacity:0;transform:translateY(28px);}
@@ -1145,21 +1181,83 @@ function renderCards(lista){
       : `<div class="no-res"><span class="no-res-emoji">🐾</span><p><strong>Todavía no hay publicaciones</strong></p><p style="font-size:.85rem;margin-top:7px;color:#bbb">Sé el primero en publicar un aviso.</p><button onclick="switchTab('publicar')" style="margin-top:16px;padding:11px 24px;background:var(--brand);color:#fff;border:none;border-radius:8px;font-family:'Nunito',sans-serif;font-weight:800;font-size:.9rem;cursor:pointer;">Publicar un aviso</button></div>`;
     g.innerHTML=msg; return;
   }
-  lista.forEach(m=>{
-    const d=document.createElement("div"); d.className="pet-card"+(m.resuelta?" resuelta":"");
-    const esOwner=currentUser&&m.publicadoPor===currentUser.uid;
-    const esAdmin=!!sessionStorage.getItem("radar_admin");
-    const puedeResolver=!m.resuelta&&(esOwner||esAdmin);
-    const puedeReportar=!esOwner&&!esAdmin&&(currentUser||sessionStorage.getItem("radar_admin"))&&!m.resuelta;
-    const fecha=m.ts?fechaRelativa(m.ts):(m.fecha||"");
-    const emojiPlaceholder=m.tipo==="Gato"?"🐱":m.tipo==="Loro"?"🦜":m.tipo==="Conejo"?"🐰":"🐶";
-    const fotoSrc=m.fotos[0].startsWith("data:")||m.fotos[0].startsWith("http")?m.fotos[0]:null;
-    const imgHtml=fotoSrc
-      ? `<img src="${fotoSrc}" alt="${m.nombre}" onerror="this.parentElement.innerHTML='<div style=\'width:100%;height:100%;background:#F1EFE8;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px\'><span style=\'font-size:2.8rem\'>${emojiPlaceholder}</span><span style=\'font-size:11px;color:#888\'>Sin foto</span></div>'">`
-      : `<div style="width:100%;height:100%;background:#F1EFE8;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px"><span style="font-size:2.8rem">${emojiPlaceholder}</span><span style="font-size:11px;color:#888">Sin foto</span></div>`;
-    d.innerHTML=`<div class="pet-card-img-wrap">${imgHtml}<div class="pet-card-overlay"></div><div class="pet-card-badges">${m.resuelta?'<span class="badge badge-resuelta">✅ Resuelta</span>':`<span class="badge badge-${m.estado.toLowerCase()}">${m.estado}</span>`}<span class="badge badge-tipo">${m.tipo}</span></div></div><div class="pet-card-body"><div class="pet-card-name">${m.nombre}</div><div class="pet-card-info">📍 ${m.localidad}</div>${m.edad?`<div class="pet-card-info">🎂 ${m.edad} año${m.edad>1?"s":""}</div>`:""}<div class="pet-card-info">🐾 ${m.raza||m.tipo}</div><div class="pet-card-date">📅 ${fecha}</div></div><div class="pet-card-actions"><button class="btn-ver" onclick="openModal('${m.id}')">Ver más</button><div class="btn-actions-divider"></div><button class="btn-wpp" onclick="irWpp('${m.contacto}','${m.nombre}','${m.localidad}')">💬</button><button class="btn-share" onclick="openShare('${m.id}')">🔁</button>${puedeResolver?`<button class="btn-resuelto" onclick="marcarResuelta('${m.id}','${m.nombre}')">✅</button>`:""}${puedeReportar?`<button class="btn-reportar" onclick="abrirReporte('${m.id}')" title="Reportar aviso">🚩</button>`:""}</div>`;
-    g.appendChild(d);
-  });
+
+  const wrap=document.createElement("div"); wrap.className="cards-editorial";
+
+  // ── helper badges ──
+  function badgesHtml(m){
+    return (m.resuelta?'<span class="badge badge-resuelta">✅ Resuelta</span>':`<span class="badge badge-${m.estado.toLowerCase()}">${m.estado}</span>`)+'<span class="badge badge-tipo">'+m.tipo+'</span>';
+  }
+  function fotoSrc(m){
+    const f=m.fotos[0];
+    return (f&&(f.startsWith("data:")||f.startsWith("http")))?f:"";
+  }
+  function esOwner(m){ return currentUser&&m.publicadoPor===currentUser.uid; }
+  const esAdmin=!!sessionStorage.getItem("radar_admin");
+
+  // ── CARD HERO (primera) ──
+  const hero=lista[0];
+  const heroSrc=fotoSrc(hero);
+  const heroEl=document.createElement("div"); heroEl.className="pet-card";
+  heroEl.innerHTML=`
+    <div class="ed-row-top">
+      <div class="ed-card-hero" onclick="openModal('${hero.id}')">
+        ${heroSrc?`<img src="${heroSrc}" alt="${hero.nombre}" onerror="this.style.display='none'">`:
+        `<div style="width:100%;height:100%;background:#2A3D30;display:flex;align-items:center;justify-content:center;font-size:5rem;">${hero.tipo==="Gato"?"🐱":"🐶"}</div>`}
+        <div class="ed-card-hero-overlay"></div>
+        <div class="ed-card-hero-body">
+          <div style="display:flex;gap:5px;flex-wrap:wrap;">${badgesHtml(hero)}</div>
+          <div class="ed-card-hero-name">${hero.nombre}</div>
+          <div class="ed-card-hero-info">📍 ${hero.localidad} · ${hero.ts?fechaRelativa(hero.ts):hero.fecha||""}</div>
+          <div class="ed-card-hero-actions">
+            <button class="ed-card-hero-btn" onclick="event.stopPropagation();openModal('${hero.id}')">Ver más</button>
+            <button class="ed-card-hero-wpp" onclick="event.stopPropagation();irWpp('${hero.contacto}','${hero.nombre}','${hero.localidad}')">💬</button>
+          </div>
+        </div>
+      </div>
+      <div class="ed-side-cards">
+        ${lista.slice(1,3).map(m=>{
+          const src=fotoSrc(m);
+          return `<div class="ed-card-side" onclick="openModal('${m.id}')">
+            ${src?`<img src="${src}" alt="${m.nombre}" onerror="this.style.background='#F1EFE8'">`:
+            `<div style="width:90px;height:90px;background:#F1EFE8;display:flex;align-items:center;justify-content:center;font-size:2rem;flex-shrink:0;">${m.tipo==="Gato"?"🐱":"🐶"}</div>`}
+            <div class="ed-card-side-body">
+              <div style="display:flex;gap:4px;">${badgesHtml(m)}</div>
+              <div class="ed-card-side-name">${m.nombre}</div>
+              <div class="ed-card-side-info">📍 ${m.localidad}</div>
+              <div class="ed-card-side-actions">
+                <button class="ed-card-side-btn" onclick="event.stopPropagation();openModal('${m.id}')">Ver más</button>
+              </div>
+            </div>
+          </div>`;
+        }).join("")}
+      </div>
+    </div>`;
+  wrap.appendChild(heroEl);
+
+  // ── CARDS MEDIANAS (resto) ──
+  if(lista.length>3){
+    const bottomWrap=document.createElement("div"); bottomWrap.className="ed-row-bottom";
+    lista.slice(3).forEach(m=>{
+      const src=fotoSrc(m);
+      const canResolve=!m.resuelta&&(esOwner(m)||esAdmin);
+      const canReport=!esOwner(m)&&!esAdmin&&(currentUser||esAdmin)&&!m.resuelta;
+      const card=document.createElement("div"); card.className="pet-card ed-card-med"+(m.resuelta?" resuelta":"");
+      card.innerHTML=`
+        ${src?`<img src="${src}" alt="${m.nombre}" onerror="this.style.display='none'">`:
+        `<div style="height:120px;background:#F1EFE8;display:flex;align-items:center;justify-content:center;font-size:3rem;">${m.tipo==="Gato"?"🐱":"🐶"}</div>`}
+        <div class="ed-card-med-body">
+          <div style="display:flex;gap:4px;flex-wrap:wrap;">${badgesHtml(m)}</div>
+          <div class="ed-card-med-name">${m.nombre}</div>
+          <div class="ed-card-med-info">📍 ${m.localidad} · ${m.ts?fechaRelativa(m.ts):m.fecha||""}</div>
+          <button class="ed-card-med-btn" onclick="openModal('${m.id}')">Ver más</button>
+        </div>`;
+      bottomWrap.appendChild(card);
+    });
+    wrap.appendChild(bottomWrap);
+  }
+
+  g.appendChild(wrap);
   observarCards();
 }
 
