@@ -482,12 +482,12 @@ footer strong{color:var(--accent2);}
         <div class="field"><label>Nombre *</label><input type="text" id="p-nombre" placeholder="Ej: Luna"></div>
         <div class="field"><label>Tipo *</label><select id="p-tipo"><option value="">Seleccioná...</option><option value="Perro">Perro</option><option value="Gato">Gato</option><option value="Loro">Loro</option><option value="Conejo">Conejo</option><option value="Otro">Otro</option></select></div>
         <div class="field"><label>Estado *</label><select id="p-estado"><option value="">Seleccioná...</option><option value="Perdida">Perdida</option><option value="Encontrada">Encontrada</option></select></div>
-        <div class="field"><label>Edad (años)</label><input type="number" id="p-edad" placeholder="Ej: 3" min="0" max="30" step="1"></div>
+        <div class="field"><label>Edad (años)</label><input type="number" id="p-edad" placeholder="Ej: 3" min="0" max="99" step="1" oninput="if(this.value.length>2)this.value=this.value.slice(0,2)"></div>
         <div class="field"><label>Localidad *</label>
           <div class="ac-wrap"><input type="text" id="p-loc" placeholder="Escribí y seleccioná..." autocomplete="off"><div class="ac-list" id="p-ac"></div></div>
           <div class="loc-chip" id="p-chip"><span id="p-chip-txt"></span><button onclick="clearChip('p')">✕</button></div>
         </div>
-        <div class="field"><label>Contacto *</label><input type="text" id="p-contacto" placeholder="Tel o email"></div>
+        <div class="field"><label>Contacto *</label><input type="text" id="p-contacto" placeholder="Ej: 11 2345-6789" maxlength="20" oninput="this.value=this.value.replace(/[^0-9+\-\s@._a-zA-Z]/g,'')"></div>
         <div class="field"><label>Raza / Color</label><input type="text" id="p-raza" placeholder="Ej: Labrador dorado"></div>
         <div class="field full"><label>Descripción</label><input type="text" id="p-desc" placeholder="Collar rojo, muy amigable con niños..."></div>
         <div class="field full">
@@ -1057,7 +1057,7 @@ async function validarImagenConIA(base64){
           role: "user",
           content: [
             { type: "image", source: { type: "base64", media_type: "image/jpeg", data } },
-            { type: "text", text: "¿Esta imagen contiene un animal (perro, gato, loro, conejo, ave u otra mascota)? Respondé únicamente con: SI o NO." }
+            { type: "text", text: "¿Esta imagen muestra una mascota doméstica (perro, gato, loro, conejo, hamster, cobayo u otro animal doméstico) como sujeto principal de la foto? Respondé ÚNICAMENTE con SI si el animal doméstico es claramente visible y es el tema principal. Respondé NO si la imagen muestra autos, personas sin mascotas, paisajes, comida, objetos, animales salvajes, o cualquier cosa que no sea una mascota doméstica como protagonista." }
           ]
         }]
       })
@@ -1112,7 +1112,21 @@ document.getElementById("p-fotos").addEventListener("change", async function(){
 function renderThumbs(){ document.getElementById("thumbs").innerHTML=b64s.map((b,i)=>`<div class="thumb"><img src="${b}"><button class="thumb-del" onclick="delThumb(${i})">✕</button></div>`).join(""); }
 function delThumb(i){ b64s.splice(i,1); renderThumbs(); }
 
-// ── FECHA RELATIVA ──
+// ── FILTRO DE PALABRAS INAPROPIADAS ──
+const PALABRAS_MALAS=["puta","mierda","culo","puto","pelotudo","boludo","forro","garca","hdp","concha","pija","choto","mogolico","mogólico","hijo de puta","la concha","cagada","cagon","cagón","reverendo","prostituta","escort","sexo","porno","droga","cocaina","cocaína","marihuana","faso"];
+function contienePalabraInapropiada(texto){
+  const t=texto.toLowerCase();
+  return PALABRAS_MALAS.some(p=>t.includes(p));
+}
+function validarTextos(campos){
+  for(const [valor,nombre] of campos){
+    if(valor && contienePalabraInapropiada(valor)){
+      toast(`⚠️ El campo "${nombre}" contiene palabras inapropiadas`);
+      return false;
+    }
+  }
+  return true;
+}
 function fechaRelativa(ts){
   if(!ts?.seconds) return "";
   const diff=Math.floor((Date.now()-ts.seconds*1000)/1000);
@@ -1138,6 +1152,10 @@ async function publicar(){
     zone.scrollIntoView({behavior:"smooth",block:"center"}); return;
   } else { zone.style.borderColor=""; zone.style.background=""; }
   if(!n||!t||!s||!chips.p.ok||!c){ toast("⚠️ Completá los campos obligatorios (*)"); return; }
+  // Validar palabras inapropiadas
+  const desc=document.getElementById("p-desc").value.trim();
+  const raza=document.getElementById("p-raza").value.trim();
+  if(!validarTextos([[n,"Nombre"],[desc,"Descripción"],[raza,"Raza"]])) return;
   btn.disabled=true; btn.textContent="Publicando...";
   const now=new Date(),fecha=`${String(now.getDate()).padStart(2,"0")}/${String(now.getMonth()+1).padStart(2,"0")}/${now.getFullYear()}`;
   try{
