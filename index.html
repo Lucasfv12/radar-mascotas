@@ -1049,7 +1049,7 @@ function setupHeroAC(){
 setupHeroAC();
 
 function comprimirImagen(file, cb){
-  if(file.size > 5*1024*1024){ toast("⚠️ La imagen supera los 5MB"); return; }
+  if(file.size > 5*1024*1024){ toast("⚠️ La imagen supera los 5MB"); cb(null); return; }
   const r = new FileReader();
   r.onload = e => {
     const img = new Image();
@@ -1062,37 +1062,11 @@ function comprimirImagen(file, cb){
       canvas.getContext("2d").drawImage(img,0,0,w,h);
       cb(canvas.toDataURL("image/jpeg",.6));
     };
+    img.onerror=()=>{ toast("⚠️ No se pudo leer la imagen"); cb(null); };
     img.src = e.target.result;
   };
+  r.onerror=()=>{ toast("⚠️ Error al leer el archivo"); cb(null); };
   r.readAsDataURL(file);
-}
-
-async function validarImagenConIA(base64){
-  // Extraer solo los datos sin el prefijo data:image/...;base64,
-  const data = base64.split(",")[1];
-  try{
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: "claude-sonnet-4-20250514",
-        max_tokens: 60,
-        messages: [{
-          role: "user",
-          content: [
-            { type: "image", source: { type: "base64", media_type: "image/jpeg", data } },
-            { type: "text", text: "¿Esta imagen muestra una mascota doméstica (perro, gato, loro, conejo, hamster, cobayo u otro animal doméstico) como sujeto principal de la foto? Respondé ÚNICAMENTE con SI si el animal doméstico es claramente visible y es el tema principal. Respondé NO si la imagen muestra autos, personas sin mascotas, paisajes, comida, objetos, animales salvajes, o cualquier cosa que no sea una mascota doméstica como protagonista." }
-          ]
-        }]
-      })
-    });
-    if(!res.ok) return true; // Si la API falla, dejar pasar para no bloquear al usuario
-    const json = await res.json();
-    const respuesta = json.content?.[0]?.text?.trim().toUpperCase() || "";
-    return respuesta.startsWith("SI");
-  } catch(e){
-    return true; // Si hay error de red, dejar pasar
-  }
 }
 
 document.getElementById("p-fotos").addEventListener("change", async function(){
@@ -1100,38 +1074,51 @@ document.getElementById("p-fotos").addEventListener("change", async function(){
   this.value = "";
   if(!files.length) return;
 
-  // Mostrar indicador de validación
   const zone = document.getElementById("upload-zone");
   const originalHtml = zone.innerHTML;
+
+  const restaurarZona = ()=>{
+    zone.innerHTML = originalHtml;
+    zone.style.pointerEvents = "";
+    zone.style.borderColor = "";
+    zone.style.background = "";
+    zone.onclick = () => document.getElementById("p-fotos").click();
+  };
+
   zone.innerHTML = `<span style="font-size:2rem;display:block;margin-bottom:8px;">🔍</span><p><strong>Verificando imagen...</strong></p><p style="font-size:.76rem;color:#888;margin-top:4px;">La IA está revisando que sea una mascota</p>`;
   zone.style.pointerEvents = "none";
 
-  for(const f of files){
-    if(b64s.length >= 2) break;
-    await new Promise(resolve => {
-      comprimirImagen(f, async b64 => {
-        const esAnimal = await validarImagenConIA(b64);
-        if(esAnimal){
-          b64s.push(b64);
-          renderThumbs();
-          toast("✅ Imagen aceptada");
-        } else {
-          toast("🚫 La imagen no parece ser de una mascota. Subí una foto del animal.");
-          // Marcar la zona en rojo brevemente
-          zone.style.borderColor = "#C0392B";
-          zone.style.background = "#FEF0F0";
-          setTimeout(()=>{ zone.style.borderColor=""; zone.style.background=""; }, 2500);
-        }
-        resolve();
+  try{
+    for(const f of files){
+      if(b64s.length >= 2) break;
+      await new Promise(resolve => {
+        comprimirImagen(f, async b64 => {
+          if(!b64){ resolve(); return; }
+          try{
+            const esAnimal = await validarImagenConIA(b64);
+            if(esAnimal){
+              b64s.push(b64);
+              renderThumbs();
+              toast("✅ Imagen aceptada");
+            } else {
+              toast("🚫 La imagen no parece ser de una mascota. Subí una foto del animal.");
+              zone.style.borderColor = "#C0392B";
+              zone.style.background = "#FEF0F0";
+              setTimeout(()=>{ zone.style.borderColor=""; zone.style.background=""; }, 2500);
+            }
+          } catch(e){
+            toast("⚠️ No se pudo verificar la imagen, intentá de nuevo.");
+          } finally{
+            resolve();
+          }
+        });
       });
-    });
+    }
+  } catch(e){
+    toast("❌ Ocurrió un error al procesar la imagen.");
+  } finally{
+    restaurarZona();
   }
-
-  // Restaurar zona
-  zone.innerHTML = originalHtml;
-  zone.style.pointerEvents = "";
-  // Re-asignar el onclick porque se regeneró el innerHTML
-  zone.onclick = () => document.getElementById("p-fotos").click();
 });
 function renderThumbs(){ document.getElementById("thumbs").innerHTML=b64s.map((b,i)=>`<div class="thumb"><img src="${b}"><button class="thumb-del" onclick="delThumb(${i})">✕</button></div>`).join(""); }
 function delThumb(i){ b64s.splice(i,1); renderThumbs(); }
