@@ -659,7 +659,7 @@ const app=initializeApp(firebaseConfig);
 const auth=getAuth(app);
 const db=getFirestore(app);
 
-const ADMIN_HASH="e3cb673eb5b6f4e5a8b88e6e1c2e66e3dcfac3f1e7d1e2e09c5dcd4f8e2a3b1c";
+const ADMIN_HASH="d35bd2d250d41881ebfb6932cc963b65e0bf2c9479b39bd1ef29ed145df16b56";
 async function verificarAdminPwd(pwd){
   const buf=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(pwd));
   return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,"0")).join("")===ADMIN_HASH;
