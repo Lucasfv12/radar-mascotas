@@ -615,7 +615,7 @@ footer strong{color:var(--accent2);}
 <div class="toast" id="toast"></div>
 
 <!-- MODAL CONFIRMACIÓN ADMIN -->
-<div class="modal" id="modal-confirm" style="z-index:2200;">
+<div class="modal" id="modal-confirm" style="z-index:99990;">
   <div class="modal-box" style="max-width:360px;">
     <div class="modal-body" style="padding:28px 24px 24px;">
       <div id="confirm-icon" style="font-size:2.5rem;text-align:center;margin-bottom:12px;">⚠️</div>
@@ -729,7 +729,11 @@ function actualizarNavSesion(){
   const btnM=document.getElementById("nav-mobile-session-btn");
   if(area){
     if(logueado){
-      area.innerHTML=`<button class="nav-user-btn" onclick="goToApp('mis')">👤 ${nombre||""}</button><a href="#" onclick="cerrarSesion();return false" style="color:rgba(255,255,255,.35);font-size:.78rem;padding:6px 10px;border-radius:7px;border:1px solid rgba(255,255,255,.12);">Salir</a>`;
+      const esAdmin=!!sessionStorage.getItem("radar_admin");
+      const panelBtn=esAdmin&&!_adminPanelAbierto
+        ? `<button class="nav-user-btn" onclick="mostrarAdmin()" style="background:rgba(200,130,58,.3);color:#E8A85A;margin-right:4px;">🛡️ Admin</button>`
+        : "";
+      area.innerHTML=`${panelBtn}<button class="nav-user-btn" onclick="goToApp('mis')">👤 ${nombre||""}</button><a href="#" onclick="cerrarSesion();return false" style="color:rgba(255,255,255,.35);font-size:.78rem;padding:6px 10px;border-radius:7px;border:1px solid rgba(255,255,255,.12);">Salir</a>`;
     } else {
       area.innerHTML=`<a href="#" onclick="mostrarLoginModal();return false" style="color:rgba(255,255,255,.45);font-size:.82rem;padding:6px 14px;border-radius:7px;border:1px solid rgba(255,255,255,.15);">Ingresar</a>`;
     }
@@ -1440,6 +1444,7 @@ function actualizarStats(){
 function toast(msg){ const t=document.getElementById("toast"); t.textContent=msg; t.classList.add("show"); setTimeout(()=>t.classList.remove("show"),3200); }
 
 function mostrarAdmin(){
+  _adminPanelAbierto=true;
   if(document.getElementById("adm-panel")) document.getElementById("adm-panel").remove();
   const total=mascotas.length,perdidas=mascotas.filter(m=>m.estado==="Perdida"&&!m.resuelta).length,resueltas=mascotas.filter(m=>m.resuelta).length,encontradas=mascotas.filter(m=>m.estado==="Encontrada"&&!m.resuelta).length;
   const s={panel:"position:fixed;inset:0;background:#0D1810;z-index:88888;overflow-y:auto;font-family:Nunito,sans-serif;",wrap:"max-width:1100px;margin:0 auto;padding:28px 20px 60px;",header:"display:flex;justify-content:space-between;align-items:center;margin-bottom:32px;flex-wrap:wrap;gap:14px;border-bottom:1px solid rgba(255,255,255,.08);padding-bottom:22px;",title:"font-family:'Playfair Display',serif;color:#fff;font-size:2rem;margin:0;",btnExit:"padding:10px 22px;background:#4A7C59;color:#fff;border:none;border-radius:9px;font-family:Nunito,sans-serif;font-weight:800;font-size:.9rem;cursor:pointer;",section:"margin-bottom:36px;",secTitle:"font-family:'Playfair Display',serif;color:#fff;font-size:1.2rem;margin:0 0 14px;padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,.08);",card:"background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:22px;text-align:center;",grid4:"display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:28px;",table:"width:100%;border-collapse:collapse;font-size:.86rem;",th:"padding:11px 14px;text-align:left;color:rgba(255,255,255,.45);font-weight:800;font-size:.72rem;text-transform:uppercase;letter-spacing:.8px;border-bottom:1px solid rgba(255,255,255,.08);",td:"padding:11px 14px;color:rgba(255,255,255,.8);border-bottom:1px solid rgba(255,255,255,.05);vertical-align:middle;",badge:(txt,col)=>`<span style="padding:3px 10px;border-radius:4px;font-size:.72rem;font-weight:800;background:${col}20;color:${col};">${txt}</span>`,btnDel:"padding:5px 12px;background:rgba(192,57,43,.25);color:#ff7a6e;border:none;border-radius:6px;cursor:pointer;font-size:.75rem;font-weight:800;font-family:Nunito,sans-serif;",btnOk:"padding:5px 12px;background:rgba(39,174,96,.25);color:#5edf9a;border:none;border-radius:6px;cursor:pointer;font-size:.75rem;font-weight:800;font-family:Nunito,sans-serif;margin-right:4px;",nodata:"<div style='text-align:center;padding:32px;color:rgba(255,255,255,.2);'>Sin datos aún</div>"};
@@ -1493,33 +1498,38 @@ function mostrarConfirm({icono="⚠️", titulo, mensaje, labelOk="Confirmar", c
   _confirmCallback=cb;
   btnOk.onclick=()=>{ cerrarConfirm(); if(_confirmCallback) _confirmCallback(); };
   document.getElementById("modal-confirm").classList.add("open");
-  lockScroll();
+  // No usamos lockScroll acá porque el panel admin ya maneja el overflow
 }
 function cerrarConfirm(){
   document.getElementById("modal-confirm").classList.remove("open");
-  unlockScroll();
   _confirmCallback=null;
 }
 document.getElementById("modal-confirm").addEventListener("click",e=>{
   if(e.target===document.getElementById("modal-confirm")) cerrarConfirm();
 });
 
-function cerrarPanelAdminView(){ const p=document.getElementById("adm-panel"); if(p) p.remove(); }
+let _adminPanelAbierto=false;
+
+function cerrarPanelAdminView(){
+  const p=document.getElementById("adm-panel");
+  if(p){ p.remove(); document.body.style.overflow=""; }
+  _adminPanelAbierto=false;
+  // Mostrar botón admin en nav nuevamente
+  actualizarNavSesion();
+}
 
 async function resolverAdmin(id){
   const m=mascotas.find(x=>x.id===id);
   mostrarConfirm({
-    icono:"✅",
-    titulo:"Marcar como resuelta",
-    mensaje:`¿Confirmás que "${m?.nombre||"esta mascota"}" fue encontrada y el caso está resuelto?`,
-    labelOk:"Sí, marcar resuelta",
-    colorOk:"#27AE60",
+    icono:"✅", titulo:"Marcar como resuelta",
+    mensaje:`¿Confirmás que "${m?.nombre||"esta mascota"}" fue encontrada?`,
+    labelOk:"Sí, marcar resuelta", colorOk:"#27AE60",
     cb: async()=>{
       try{
         await updateDoc(doc(db,"mascotas",id),{resuelta:true});
         toast("✅ Marcada como resuelta.");
-        setTimeout(mostrarAdmin,400);
-      } catch(e){ toast("❌ Error al actualizar. Revisá las reglas de Firestore."); console.error(e); }
+        if(_adminPanelAbierto) setTimeout(mostrarAdmin,400);
+      } catch(e){ toast("❌ Error. Revisá las reglas de Firestore."); console.error(e); }
     }
   });
 }
@@ -1527,17 +1537,15 @@ async function resolverAdmin(id){
 async function restaurarAviso(id){
   const m=mascotas.find(x=>x.id===id);
   mostrarConfirm({
-    icono:"🔓",
-    titulo:"Restaurar aviso",
-    mensaje:`¿Querés restaurar "${m?.nombre||"este aviso"}" para que sea visible nuevamente?`,
-    labelOk:"Restaurar",
-    colorOk:"#2980B9",
+    icono:"🔓", titulo:"Restaurar aviso",
+    mensaje:`¿Querés que "${m?.nombre||"este aviso"}" vuelva a ser visible?`,
+    labelOk:"Restaurar", colorOk:"#2980B9",
     cb: async()=>{
       try{
         await updateDoc(doc(db,"mascotas",id),{oculto:false});
-        toast("✅ Aviso restaurado y visible nuevamente.");
-        setTimeout(mostrarAdmin,400);
-      } catch(e){ toast("❌ Error al restaurar. Revisá las reglas de Firestore."); console.error(e); }
+        toast("✅ Aviso restaurado.");
+        if(_adminPanelAbierto) setTimeout(mostrarAdmin,400);
+      } catch(e){ toast("❌ Error al restaurar."); console.error(e); }
     }
   });
 }
@@ -1545,17 +1553,15 @@ async function restaurarAviso(id){
 async function eliminarMascotaAdmin(id){
   const m=mascotas.find(x=>x.id===id);
   mostrarConfirm({
-    icono:"🗑️",
-    titulo:"Eliminar publicación",
-    mensaje:`¿Seguro que querés eliminar el aviso de "${m?.nombre||"esta mascota"}"? Esta acción no se puede deshacer.`,
-    labelOk:"Sí, eliminar",
-    colorOk:"#C0392B",
+    icono:"🗑️", titulo:"Eliminar publicación",
+    mensaje:`¿Seguro que querés eliminar "${m?.nombre||"esta publicación"}"? No se puede deshacer.`,
+    labelOk:"Sí, eliminar", colorOk:"#C0392B",
     cb: async()=>{
       try{
         await deleteDoc(doc(db,"mascotas",id));
         toast("🗑️ Publicación eliminada.");
-        setTimeout(mostrarAdmin,400);
-      } catch(e){ toast("❌ Error al eliminar. Revisá las reglas de Firestore."); console.error(e); }
+        if(_adminPanelAbierto) setTimeout(mostrarAdmin,400);
+      } catch(e){ toast("❌ Error. Revisá las reglas de Firestore."); console.error(e); }
     }
   });
 }
@@ -1563,35 +1569,31 @@ async function eliminarMascotaAdmin(id){
 async function eliminarResenaAdmin(id){
   if(!id||id==="undefined"){ toast("⚠️ Esta reseña es demo y no se puede eliminar."); return; }
   mostrarConfirm({
-    icono:"⭐",
-    titulo:"Eliminar reseña",
-    mensaje:"¿Seguro que querés eliminar esta reseña? Esta acción no se puede deshacer.",
-    labelOk:"Sí, eliminar",
-    colorOk:"#C0392B",
+    icono:"⭐", titulo:"Eliminar reseña",
+    mensaje:"¿Seguro que querés eliminar esta reseña?",
+    labelOk:"Sí, eliminar", colorOk:"#C0392B",
     cb: async()=>{
       try{
         await deleteDoc(doc(db,"resenas",id));
         resenas=resenas.filter(r=>r.id!==id);
         renderResenas();
         toast("Reseña eliminada.");
-        setTimeout(mostrarAdmin,400);
-      } catch(e){ toast("❌ Error al eliminar. Revisá las reglas de Firestore."); console.error(e); }
+        if(_adminPanelAbierto) setTimeout(mostrarAdmin,400);
+      } catch(e){ toast("❌ Error al eliminar."); console.error(e); }
     }
   });
 }
 
 async function eliminarReporteAdmin(id){
   mostrarConfirm({
-    icono:"🚩",
-    titulo:"Borrar reporte",
-    mensaje:"¿Querés borrar este reporte? El aviso seguirá en el estado actual.",
-    labelOk:"Borrar reporte",
-    colorOk:"#C0392B",
+    icono:"🚩", titulo:"Borrar reporte",
+    mensaje:"¿Querés borrar este reporte?",
+    labelOk:"Borrar reporte", colorOk:"#C0392B",
     cb: async()=>{
       try{
         await deleteDoc(doc(db,"reportes",id));
         toast("Reporte eliminado.");
-        setTimeout(mostrarAdmin,400);
+        if(_adminPanelAbierto) setTimeout(mostrarAdmin,400);
       } catch(e){ toast("❌ Error al eliminar."); console.error(e); }
     }
   });
