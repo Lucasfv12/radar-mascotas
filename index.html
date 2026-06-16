@@ -614,6 +614,21 @@ footer strong{color:var(--accent2);}
 
 <div class="toast" id="toast"></div>
 
+<!-- MODAL CONFIRMACIÓN ADMIN -->
+<div class="modal" id="modal-confirm" style="z-index:2200;">
+  <div class="modal-box" style="max-width:360px;">
+    <div class="modal-body" style="padding:28px 24px 24px;">
+      <div id="confirm-icon" style="font-size:2.5rem;text-align:center;margin-bottom:12px;">⚠️</div>
+      <h3 id="confirm-title" style="font-family:'Playfair Display',serif;font-size:1.3rem;color:var(--text);text-align:center;margin-bottom:8px;"></h3>
+      <p id="confirm-msg" style="font-size:.88rem;color:var(--muted);text-align:center;margin-bottom:24px;line-height:1.5;"></p>
+      <div style="display:flex;gap:10px;">
+        <button id="confirm-cancel" onclick="cerrarConfirm()" style="flex:1;padding:12px;background:var(--fondo);color:var(--muted);border:1.5px solid var(--border);border-radius:9px;font-family:'Nunito',sans-serif;font-weight:700;font-size:.95rem;cursor:pointer;">Cancelar</button>
+        <button id="confirm-ok" style="flex:1;padding:12px;background:#C0392B;color:#fff;border:none;border-radius:9px;font-family:'Nunito',sans-serif;font-weight:800;font-size:.95rem;cursor:pointer;">Eliminar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL REPORTE -->
 <div class="modal" id="modal-reporte" style="z-index:2100;">
   <div class="modal-box" style="max-width:380px;">
@@ -1466,12 +1481,121 @@ function mostrarAdmin(){
   }).catch(()=>{});
   const div=document.createElement("div"); div.innerHTML=h; document.body.appendChild(div.firstChild);
 }
+// ── MODAL DE CONFIRMACIÓN ──
+let _confirmCallback=null;
+function mostrarConfirm({icono="⚠️", titulo, mensaje, labelOk="Confirmar", colorOk="#C0392B", cb}){
+  document.getElementById("confirm-icon").textContent=icono;
+  document.getElementById("confirm-title").textContent=titulo;
+  document.getElementById("confirm-msg").textContent=mensaje;
+  const btnOk=document.getElementById("confirm-ok");
+  btnOk.textContent=labelOk;
+  btnOk.style.background=colorOk;
+  _confirmCallback=cb;
+  btnOk.onclick=()=>{ cerrarConfirm(); if(_confirmCallback) _confirmCallback(); };
+  document.getElementById("modal-confirm").classList.add("open");
+  lockScroll();
+}
+function cerrarConfirm(){
+  document.getElementById("modal-confirm").classList.remove("open");
+  unlockScroll();
+  _confirmCallback=null;
+}
+document.getElementById("modal-confirm").addEventListener("click",e=>{
+  if(e.target===document.getElementById("modal-confirm")) cerrarConfirm();
+});
+
 function cerrarPanelAdminView(){ const p=document.getElementById("adm-panel"); if(p) p.remove(); }
-async function resolverAdmin(id){ try{ await updateDoc(doc(db,"mascotas",id),{resuelta:true}); toast("✅ Marcada como resuelta."); } catch(e){ toast("❌ Error al actualizar."); } }
-async function restaurarAviso(id){ try{ await updateDoc(doc(db,"mascotas",id),{oculto:false}); toast("✅ Aviso restaurado y visible nuevamente."); mostrarAdmin(); } catch(e){ toast("❌ Error al restaurar."); } }
-async function eliminarReporteAdmin(id){ try{ await deleteDoc(doc(db,"reportes",id)); toast("Reporte eliminado."); mostrarAdmin(); } catch(e){ toast("❌ Error al eliminar."); } }
-async function eliminarMascotaAdmin(id){ if(!confirm("¿Eliminar esta publicación?"))return; try{ await deleteDoc(doc(db,"mascotas",id)); toast("Publicación eliminada."); } catch(e){ toast("❌ Error al eliminar."); } }
-async function eliminarResenaAdmin(id){ if(!id||id==="undefined"){ toast("⚠️ Esta reseña es demo y no se puede eliminar."); return; } if(!confirm("¿Eliminar esta reseña?"))return; try{ await deleteDoc(doc(db,"resenas",id)); resenas=resenas.filter(r=>r.id!==id); renderResenas(); toast("Reseña eliminada."); if(document.getElementById("adm-panel")) mostrarAdmin(); } catch(e){ toast("❌ Error al eliminar."); } }
+
+async function resolverAdmin(id){
+  const m=mascotas.find(x=>x.id===id);
+  mostrarConfirm({
+    icono:"✅",
+    titulo:"Marcar como resuelta",
+    mensaje:`¿Confirmás que "${m?.nombre||"esta mascota"}" fue encontrada y el caso está resuelto?`,
+    labelOk:"Sí, marcar resuelta",
+    colorOk:"#27AE60",
+    cb: async()=>{
+      try{
+        await updateDoc(doc(db,"mascotas",id),{resuelta:true});
+        toast("✅ Marcada como resuelta.");
+        setTimeout(mostrarAdmin,400);
+      } catch(e){ toast("❌ Error al actualizar. Revisá las reglas de Firestore."); console.error(e); }
+    }
+  });
+}
+
+async function restaurarAviso(id){
+  const m=mascotas.find(x=>x.id===id);
+  mostrarConfirm({
+    icono:"🔓",
+    titulo:"Restaurar aviso",
+    mensaje:`¿Querés restaurar "${m?.nombre||"este aviso"}" para que sea visible nuevamente?`,
+    labelOk:"Restaurar",
+    colorOk:"#2980B9",
+    cb: async()=>{
+      try{
+        await updateDoc(doc(db,"mascotas",id),{oculto:false});
+        toast("✅ Aviso restaurado y visible nuevamente.");
+        setTimeout(mostrarAdmin,400);
+      } catch(e){ toast("❌ Error al restaurar. Revisá las reglas de Firestore."); console.error(e); }
+    }
+  });
+}
+
+async function eliminarMascotaAdmin(id){
+  const m=mascotas.find(x=>x.id===id);
+  mostrarConfirm({
+    icono:"🗑️",
+    titulo:"Eliminar publicación",
+    mensaje:`¿Seguro que querés eliminar el aviso de "${m?.nombre||"esta mascota"}"? Esta acción no se puede deshacer.`,
+    labelOk:"Sí, eliminar",
+    colorOk:"#C0392B",
+    cb: async()=>{
+      try{
+        await deleteDoc(doc(db,"mascotas",id));
+        toast("🗑️ Publicación eliminada.");
+        setTimeout(mostrarAdmin,400);
+      } catch(e){ toast("❌ Error al eliminar. Revisá las reglas de Firestore."); console.error(e); }
+    }
+  });
+}
+
+async function eliminarResenaAdmin(id){
+  if(!id||id==="undefined"){ toast("⚠️ Esta reseña es demo y no se puede eliminar."); return; }
+  mostrarConfirm({
+    icono:"⭐",
+    titulo:"Eliminar reseña",
+    mensaje:"¿Seguro que querés eliminar esta reseña? Esta acción no se puede deshacer.",
+    labelOk:"Sí, eliminar",
+    colorOk:"#C0392B",
+    cb: async()=>{
+      try{
+        await deleteDoc(doc(db,"resenas",id));
+        resenas=resenas.filter(r=>r.id!==id);
+        renderResenas();
+        toast("Reseña eliminada.");
+        setTimeout(mostrarAdmin,400);
+      } catch(e){ toast("❌ Error al eliminar. Revisá las reglas de Firestore."); console.error(e); }
+    }
+  });
+}
+
+async function eliminarReporteAdmin(id){
+  mostrarConfirm({
+    icono:"🚩",
+    titulo:"Borrar reporte",
+    mensaje:"¿Querés borrar este reporte? El aviso seguirá en el estado actual.",
+    labelOk:"Borrar reporte",
+    colorOk:"#C0392B",
+    cb: async()=>{
+      try{
+        await deleteDoc(doc(db,"reportes",id));
+        toast("Reporte eliminado.");
+        setTimeout(mostrarAdmin,400);
+      } catch(e){ toast("❌ Error al eliminar."); console.error(e); }
+    }
+  });
+}
 
 window.doLogin=doLogin; window.doRegister=doRegister; window.doLoginAdmin=doLoginAdmin;
 window.cerrarSesion=cerrarSesion; window.abrirPanelAdmin=abrirPanelAdmin; window.volverLogin=volverLogin;
@@ -1493,6 +1617,7 @@ window.selHeroFilter=selHeroFilter; window.limpiarHeroSearch=limpiarHeroSearch;
 window.abrirReporte=abrirReporte; window.closeReporte=closeReporte; window.enviarReporte=enviarReporte;
 window.restaurarAviso=restaurarAviso; window.eliminarReporteAdmin=eliminarReporteAdmin;
 window.irSlide=irSlide; window.mostrarLoginModal=mostrarLoginModal;
+window.cerrarConfirm=cerrarConfirm;
 </script>
 </body>
 </html>
