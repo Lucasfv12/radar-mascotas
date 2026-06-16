@@ -163,21 +163,23 @@ nav.scrolled{background:rgba(30,43,34,.97);backdrop-filter:blur(14px);box-shadow
 .pet-card-name{font-family:'Playfair Display',serif;font-size:1.2rem;color:var(--text);margin-bottom:6px;line-height:1.2;}
 .pet-card-info{font-size:.8rem;color:var(--muted);margin-bottom:3px;font-weight:600;}
 .pet-card-date{font-size:.71rem;color:#BBB;margin-top:6px;}
-.pet-card-actions{display:flex;gap:6px;padding:10px 12px 14px;align-items:center;}
-.btn-ver{flex:1;padding:9px 0;background:#2D6A4F;color:#fff;border:none;border-radius:8px;font-family:'Nunito',sans-serif;font-weight:800;font-size:.84rem;cursor:pointer;transition:background .2s;display:flex;align-items:center;justify-content:center;gap:6px;}
+.pet-card-actions{display:flex;gap:5px;padding:10px 10px 14px;align-items:center;min-width:0;}
+.btn-ver{flex:1;min-width:0;padding:9px 6px;background:#2D6A4F;color:#fff;border:none;border-radius:8px;font-family:'Nunito',sans-serif;font-weight:800;font-size:.8rem;cursor:pointer;transition:background .2s;display:flex;align-items:center;justify-content:center;gap:5px;overflow:hidden;}
 .btn-ver:hover{background:#1B4332;}
-.btn-ver svg{width:15px;height:15px;flex-shrink:0;}
+.btn-ver svg{width:14px;height:14px;flex-shrink:0;}
 .btn-actions-divider{display:none;}
-.btn-wpp{width:36px;height:36px;background:#D8F3DC;color:#2D6A4F;border:none;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0;}
+.btn-wpp{width:34px;height:34px;min-width:34px;background:#D8F3DC;color:#2D6A4F;border:none;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0;}
 .btn-wpp:hover{background:#2D6A4F;color:#fff;}
-.btn-wpp svg{width:15px;height:15px;}
-.btn-share{width:36px;height:36px;background:#D8F3DC;color:#2D6A4F;border:none;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0;}
+.btn-wpp svg{width:14px;height:14px;}
+.btn-share{width:34px;height:34px;min-width:34px;background:#D8F3DC;color:#2D6A4F;border:none;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0;}
 .btn-share:hover{background:#2D6A4F;color:#fff;}
-.btn-share svg{width:15px;height:15px;}
-.btn-resuelto{width:36px;height:36px;background:#D8F3DC;color:#2D6A4F;border:none;border-radius:8px;cursor:pointer;font-size:.75rem;font-weight:800;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0;}
+.btn-share svg{width:14px;height:14px;}
+.btn-resuelto{width:34px;height:34px;min-width:34px;background:#D8F3DC;color:#2D6A4F;border:none;border-radius:8px;cursor:pointer;font-size:.85rem;font-weight:800;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0;}
 .btn-resuelto:hover{background:#27AE60;color:#fff;}
-.btn-reportar{width:30px;height:30px;background:transparent;color:var(--muted);border:0.5px solid var(--border);border-radius:8px;cursor:pointer;font-size:.75rem;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0;}
+.btn-reportar{width:28px;height:28px;min-width:28px;background:transparent;color:var(--muted);border:0.5px solid var(--border);border-radius:8px;cursor:pointer;font-size:.7rem;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0;}
 .btn-reportar:hover{background:#FEF0F0;color:#C0392B;border-color:#C0392B;}
+.btn-eliminar{width:34px;height:34px;min-width:34px;background:#FEE2E2;color:#C0392B;border:none;border-radius:8px;cursor:pointer;font-size:.85rem;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0;}
+.btn-eliminar:hover{background:#C0392B;color:#fff;}
 /* ── LAYOUT EDITORIAL ── */
 .cards-editorial{width:100%;}
 .ed-row-top{display:grid;grid-template-columns:1.9fr 1fr;gap:14px;margin-bottom:14px;}
@@ -1256,7 +1258,7 @@ function renderMisPublicaciones(){
   mis.forEach(m=>{
     const d=document.createElement("div"); d.className="pet-card"+(m.resuelta?" resuelta":"");
     const fecha=m.ts?fechaRelativa(m.ts):(m.fecha||"");
-    d.innerHTML=`<div class="pet-card-img-wrap"><img src="${m.fotos[0]}" alt="${m.nombre}" onerror="this.src='https://placehold.co/300x200/4A7C59/fff?text=${encodeURIComponent(m.tipo)}'"><div class="pet-card-overlay"></div><div class="pet-card-badges">${m.resuelta?'<span class="badge badge-resuelta">✅ Resuelta</span>':`<span class="badge badge-${m.estado.toLowerCase()}">${m.estado}</span>`}<span class="badge badge-tipo">${m.tipo}</span></div></div><div class="pet-card-body"><div class="pet-card-name">${m.nombre}</div><div class="pet-card-info">📍 ${m.localidad}</div>${m.edad?`<div class="pet-card-info">🎂 ${m.edad} año${m.edad>1?"s":""}</div>`:""}<div class="pet-card-info">🐾 ${m.raza||m.tipo}</div><div class="pet-card-date">📅 ${fecha}</div></div><div class="pet-card-actions"><button class="btn-ver" onclick="openModal('${m.id}')">Ver más</button>${!m.resuelta?`<button class="btn-resuelto" onclick="marcarResuelta('${m.id}','${m.nombre}')">✅ Resuelta</button>`:""}<button onclick="eliminarMiAviso('${m.id}','${m.nombre}')" style="padding:8px 10px;background:#C0392B;color:#fff;border:none;border-radius:7px;cursor:pointer;font-size:.72rem;font-weight:800;">🗑️</button></div>`;
+    d.innerHTML=`<div class="pet-card-img-wrap"><img src="${m.fotos[0]}" alt="${m.nombre}" onerror="this.style.background='#F1EFE8';this.removeAttribute('src')"><div class="pet-card-overlay"></div><div class="pet-card-badges">${m.resuelta?'<span class="badge badge-resuelta">✅ Resuelta</span>':`<span class="badge badge-${m.estado.toLowerCase()}">${m.estado}</span>`}<span class="badge badge-tipo">${m.tipo}</span></div></div><div class="pet-card-body"><div class="pet-card-name">${m.nombre}</div><div class="pet-card-info">📍 ${m.localidad}</div>${m.edad?`<div class="pet-card-info">🎂 ${m.edad} año${m.edad>1?"s":""}</div>`:""}<div class="pet-card-info">🐾 ${m.raza||m.tipo}</div><div class="pet-card-date">📅 ${fecha}</div></div><div class="pet-card-actions"><button class="btn-ver" onclick="openModal('${m.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:14px;height:14px;flex-shrink:0;"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg> Ver más</button>${!m.resuelta?`<button class="btn-resuelto" title="Marcar resuelta" onclick="marcarResuelta('${m.id}','${m.nombre}')">✓</button>`:""}<button class="btn-eliminar" title="Eliminar aviso" onclick="eliminarMiAviso('${m.id}','${m.nombre}')">🗑️</button></div>`;
     g.appendChild(d);
   });
   observarCards();
