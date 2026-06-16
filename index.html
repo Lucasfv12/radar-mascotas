@@ -100,11 +100,13 @@ nav.scrolled{background:rgba(30,43,34,.97);backdrop-filter:blur(14px);box-shadow
 .hero-dot.on{background:var(--accent2);width:22px;border-radius:4px;}
 .nav-user-btn{color:rgba(255,255,255,.8);font-size:.82rem;font-weight:700;padding:6px 12px;border-radius:8px;cursor:pointer;transition:background .2s;background:rgba(255,255,255,.1);border:none;font-family:'Nunito',sans-serif;}
 .nav-user-btn:hover{background:rgba(255,255,255,.18);}
-.stats-section{background:var(--dark2);padding:36px 20px;display:flex;justify-content:center;flex-wrap:wrap;}
-.stat-box{flex:1 1 160px;text-align:center;padding:14px 28px;border-right:1px solid rgba(255,255,255,.07);max-width:220px;}
+.stats-section{background:var(--dark2);padding:28px 20px;display:flex;justify-content:center;flex-wrap:wrap;}
+.stat-box{flex:1 1 160px;text-align:center;padding:16px 20px;border-right:1px solid rgba(255,255,255,.07);max-width:260px;}
 .stat-box:last-child{border:none;}
-.stat-num{font-family:'Playfair Display',serif;font-size:2.6rem;color:var(--accent2);display:block;line-height:1;}
-.stat-lbl{font-size:.74rem;color:rgba(255,255,255,.4);font-weight:700;text-transform:uppercase;letter-spacing:1.5px;margin-top:4px;}
+.stat-ico{font-size:1.5rem;display:block;margin-bottom:5px;}
+.stat-num{font-family:'Playfair Display',serif;font-size:2.4rem;color:var(--accent2);display:block;line-height:1;}
+.stat-lbl{font-size:.74rem;color:rgba(255,255,255,.5);font-weight:700;text-transform:uppercase;letter-spacing:1.5px;margin-top:4px;display:block;}
+.stat-sub{font-size:.68rem;color:rgba(255,255,255,.22);margin-top:2px;display:block;}
 .app-section{padding:64px 20px;max-width:1000px;margin:0 auto;display:flex;flex-direction:column;align-items:center;}
 .tabs-wrap{display:flex;justify-content:center;gap:6px;margin-bottom:32px;background:var(--surface);border-radius:10px;padding:6px;box-shadow:var(--shadow);width:fit-content;margin-left:auto;margin-right:auto;border:1.5px solid var(--border);}
 .tab-btn{padding:11px 22px;border-radius:7px;border:none;font-family:'Nunito',sans-serif;font-size:.88rem;font-weight:800;cursor:pointer;transition:all .22s;color:var(--muted);background:transparent;}
@@ -313,8 +315,9 @@ footer strong{color:var(--accent2);}
   .hero{padding:78px 16px 40px;}.hero h1{font-size:2.4rem;}
   .btn-h1,.btn-h2{width:100%;padding:13px;font-size:.95rem;}
   .hero-btns{flex-direction:column;align-items:stretch;max-width:300px;}
-  .stats-section{padding:16px 0;}.stat-box{flex:1 1 50%;padding:10px 8px;border-right:none;border-bottom:1px solid rgba(255,255,255,.07);}
-  .stat-box:nth-child(odd){border-right:1px solid rgba(255,255,255,.07);}
+  .stats-section{padding:16px 0;}.stat-box{flex:1 1 33%;padding:12px 6px;border-right:none;border-bottom:1px solid rgba(255,255,255,.07);}
+  .stat-box:nth-child(-n+2){border-right:1px solid rgba(255,255,255,.07);}
+  .stat-box:last-child{border-bottom:none;}.stat-num{font-size:1.8rem;}
   .app-section{padding:36px 12px;}.tabs-wrap{gap:4px;}.tab-btn{padding:7px 10px;font-size:.75rem;flex:1;}
   .search-card,.form-card{padding:18px 13px;}.search-filters{grid-template-columns:1fr;}
   .form-grid{grid-template-columns:1fr;}.full{grid-column:1;}.cards-grid{gap:13px;}.pet-card{width:100%;max-width:100%;}
@@ -449,8 +452,24 @@ footer strong{color:var(--accent2);}
   <svg class="hero-wave" viewBox="0 0 1440 70" preserveAspectRatio="none"><path d="M0,35 C360,70 1080,0 1440,35 L1440,70 L0,70 Z" fill="#4A7C59"/></svg>
 </section>
 <div class="stats-section">
-  <div class="stat-box"><span class="stat-num" id="s-total">0</span><span class="stat-lbl">Publicaciones</span></div>
-  <div class="stat-box"><span class="stat-num" id="s-resueltas">0</span><span class="stat-lbl">Reunidas ❤️</span></div>
+  <div class="stat-box">
+    <span class="stat-ico">🔍</span>
+    <span class="stat-num" id="s-activas">0</span>
+    <span class="stat-lbl">Búsquedas activas</span>
+    <span class="stat-sub">mascotas perdidas</span>
+  </div>
+  <div class="stat-box">
+    <span class="stat-ico">❤️</span>
+    <span class="stat-num" id="s-resueltas">0</span>
+    <span class="stat-lbl">Reencuentros</span>
+    <span class="stat-sub">casos resueltos</span>
+  </div>
+  <div class="stat-box">
+    <span class="stat-ico">📍</span>
+    <span class="stat-num" id="s-localidades">0</span>
+    <span class="stat-lbl">Localidades</span>
+    <span class="stat-sub">con avisos activos</span>
+  </div>
 </div>
 <section id="app" class="app-section">
   <div class="tabs-wrap">
@@ -1396,8 +1415,12 @@ async function agregarResena(){
 }
 
 function actualizarStats(){
-  document.getElementById("s-total").textContent=mascotas.length;
-  document.getElementById("s-resueltas").textContent=mascotas.filter(m=>m.resuelta).length;
+  const activas=mascotas.filter(m=>!m.resuelta&&!m.oculto).length;
+  const resueltas=mascotas.filter(m=>m.resuelta).length;
+  const localidades=new Set(mascotas.filter(m=>!m.resuelta&&!m.oculto).map(m=>m.localidad)).size;
+  document.getElementById("s-activas").textContent=activas;
+  document.getElementById("s-resueltas").textContent=resueltas;
+  document.getElementById("s-localidades").textContent=localidades;
 }
 function toast(msg){ const t=document.getElementById("toast"); t.textContent=msg; t.classList.add("show"); setTimeout(()=>t.classList.remove("show"),3200); }
 
