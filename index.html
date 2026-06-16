@@ -50,8 +50,10 @@ nav.scrolled{background:rgba(30,43,34,.97);backdrop-filter:blur(14px);box-shadow
 .nav-links{display:flex;gap:4px;align-items:center;}
 .nav-links a{color:rgba(255,255,255,.75);text-decoration:none;padding:7px 15px;border-radius:8px;font-weight:700;font-size:.86rem;transition:all .2s;}
 .nav-links a:hover{background:rgba(255,255,255,.1);color:#fff;}
+.nav-links a.active{background:rgba(255,255,255,.15);color:#fff;}
 .nav-links a.cta{background:var(--accent);color:#fff;box-shadow:0 3px 12px rgba(200,130,58,.4);}
 .nav-links a.cta:hover{background:var(--accent2);}
+.nav-links a.cta.active{background:var(--accent2);}
 .nav-user{color:rgba(255,255,255,.5);font-size:.8rem;font-weight:600;padding:5px 10px;}
 .nav-hamburger{display:none;flex-direction:column;gap:5px;background:none;border:none;cursor:pointer;padding:6px;}
 .nav-hamburger span{display:block;width:22px;height:2px;background:#fff;border-radius:2px;transition:all .3s;}
@@ -403,9 +405,9 @@ footer strong{color:var(--accent2);}
     <span style="font-size:.52rem;color:rgba(255,255,255,.5);font-weight:600;letter-spacing:1.5px;text-transform:uppercase;margin-top:1px;">Rastreo de Animales Desaparecidos</span>
   </a>
   <div class="nav-links">
-    <a href="#" onclick="showPage('main');return false">Inicio</a>
-    <a href="#" onclick="showPage('info');return false">Reseñas</a>
-    <a href="#" class="cta" onclick="accionAutenticada(()=>{ showPage('main');setTimeout(()=>switchTab('publicar'),300); });return false">Publicar</a>
+    <a href="#" id="nav-link-inicio" onclick="showPage('main');return false">Inicio</a>
+    <a href="#" id="nav-link-resenas" onclick="showPage('info');return false">Reseñas</a>
+    <a href="#" id="nav-link-publicar" class="cta" onclick="accionAutenticada(()=>{ showPage('main');goToApp('publicar'); });return false">Publicar</a>
     <span id="nav-user-area"></span>
   </div>
   <button class="nav-hamburger" id="hamburger" onclick="toggleNav()"><span></span><span></span><span></span></button>
@@ -739,6 +741,9 @@ function entrarPublico(){
   document.getElementById("db-loading").style.display="none";
   document.body.style.overflow="";
   actualizarNavSesion();
+  // Marcar Inicio como activo por defecto
+  const li=document.getElementById("nav-link-inicio");
+  if(li) li.classList.add("active");
   renderCards(mascotas);
   renderResenas();
   actualizarStats();
@@ -895,9 +900,26 @@ function showPage(page){
   window.scrollTo({top:0,behavior:"smooth"});
   const nav=document.getElementById("mainNav");
   if(page==="info"){ nav.style.background="rgba(30,43,34,.97)"; nav.style.boxShadow="0 2px 16px rgba(0,0,0,.35)"; }
-  else { nav.style.background=""; nav.style.boxShadow=""; }
+  else{ nav.style.background=""; nav.style.boxShadow=""; }
+  // Marcar link activo
+  document.querySelectorAll(".nav-links a[id^='nav-link-']").forEach(a=>a.classList.remove("active"));
+  const linkActivo=document.getElementById("nav-link-"+(page==="info"?"resenas":"inicio"));
+  if(linkActivo) linkActivo.classList.add("active");
 }
-function goToApp(t){ document.getElementById("app").scrollIntoView({behavior:"smooth"}); setTimeout(()=>switchTab(t),350); }
+
+function goToApp(t){
+  showPage("main");
+  // Marcar publicar como activo si corresponde
+  document.querySelectorAll(".nav-links a[id^='nav-link-']").forEach(a=>a.classList.remove("active"));
+  if(t==="publicar"){
+    const lp=document.getElementById("nav-link-publicar");
+    if(lp) lp.classList.add("active");
+  }
+  setTimeout(()=>{
+    document.getElementById("app").scrollIntoView({behavior:"smooth"});
+    setTimeout(()=>switchTab(t),350);
+  },50);
+}
 function switchTab(t){
   ["buscar","publicar","mapa","mis"].forEach(x=>{ document.getElementById("panel-"+x).classList.remove("active"); document.getElementById("tb-"+x).classList.remove("active"); });
   document.getElementById("panel-"+t).classList.add("active"); document.getElementById("tb-"+t).classList.add("active");
