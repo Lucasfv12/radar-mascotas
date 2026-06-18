@@ -815,18 +815,23 @@ const _fbTimeout=setTimeout(()=>{
 onAuthStateChanged(auth,async user=>{
   clearTimeout(_fbTimeout);
   try{
-    if(user){
-      currentUser=user; setDbMsg("Cargando datos...");
-      await cargarDemoSiVacio(); escucharMascotas(); await cargarResenas();
-      entrarPublico();
-    } else if(sessionStorage.getItem("radar_admin")){
-      // Si el admin recargó y Firebase perdió la sesión, restaurarla
-      if(!user){ try{ await signInWithEmailAndPassword(auth,"admin@radar.com","Pocket26"); } catch(e){ console.warn(e); } }
+    // Detectar si es admin: por sessionStorage O por email de Firebase Auth
+    const esAdmin=sessionStorage.getItem("radar_admin")||
+                  (user&&user.email==="admin@radar.com");
+
+    if(esAdmin){
+      // Asegurar que sessionStorage esté marcado
+      sessionStorage.setItem("radar_admin","1");
       currentUser=null; setDbMsg("Cargando datos...");
       await cargarDemoSiVacio(); escucharMascotas(); await cargarResenas();
       entrarPublico(); setTimeout(mostrarAdmin,200);
+    } else if(user){
+      // Usuario normal logueado
+      currentUser=user; setDbMsg("Cargando datos...");
+      await cargarDemoSiVacio(); escucharMascotas(); await cargarResenas();
+      entrarPublico();
     } else {
-      // Sin sesión — igual cargar datos y mostrar la app
+      // Sin sesión — mostrar app pública
       currentUser=null; setDbMsg("Cargando publicaciones...");
       await cargarDemoSiVacio(); escucharMascotas(); await cargarResenas();
       entrarPublico();
@@ -912,9 +917,8 @@ async function cerrarSesion(){
   resetearBusqueda(); busquedaActiva=false;
   if(unsub){ unsub(); unsub=null; }
   sessionStorage.removeItem("radar_admin");
-  if(currentUser){ await signOut(auth); }
   currentUser=null;
-  actualizarNavSesion();
+  try{ await signOut(auth); } catch(e){ console.warn(e); }
   location.reload();
 }
 
