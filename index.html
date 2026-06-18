@@ -1521,7 +1521,11 @@ function mostrarConfirm({icono="⚠️", titulo, mensaje, labelOk="Confirmar", c
   btnOk.textContent=labelOk;
   btnOk.style.background=colorOk;
   _confirmCallback=cb;
-  btnOk.onclick=()=>{ cerrarConfirm(); if(_confirmCallback) _confirmCallback(); };
+  btnOk.onclick=()=>{
+    const fn=_confirmCallback; // guardar referencia ANTES de cerrar
+    cerrarConfirm();
+    if(fn) fn();
+  };
   document.getElementById("modal-confirm").classList.add("open");
   // No usamos lockScroll acá porque el panel admin ya maneja el overflow
 }
