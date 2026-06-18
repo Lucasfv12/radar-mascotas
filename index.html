@@ -820,6 +820,8 @@ onAuthStateChanged(auth,async user=>{
       await cargarDemoSiVacio(); escucharMascotas(); await cargarResenas();
       entrarPublico();
     } else if(sessionStorage.getItem("radar_admin")){
+      // Si el admin recargó y Firebase perdió la sesión, restaurarla
+      if(!user){ try{ await signInWithEmailAndPassword(auth,"admin@radar.com","Pocket26"); } catch(e){ console.warn(e); } }
       currentUser=null; setDbMsg("Cargando datos...");
       await cargarDemoSiVacio(); escucharMascotas(); await cargarResenas();
       entrarPublico(); setTimeout(mostrarAdmin,200);
@@ -900,6 +902,9 @@ async function doLoginAdmin(){
   if(!pwd){ err.textContent="Ingresá la contraseña."; return; }
   const ok=await verificarAdminPwd(pwd);
   if(!ok){ err.textContent="Contraseña incorrecta."; document.getElementById("adm-pwd").value=""; return; }
+  // Autenticar en Firebase con la cuenta admin real
+  try{ await signInWithEmailAndPassword(auth,"admin@radar.com","Pocket26"); }
+  catch(e){ console.warn("Firebase admin auth falló:",e); }
   sessionStorage.setItem("radar_admin","1"); location.reload();
 }
 
