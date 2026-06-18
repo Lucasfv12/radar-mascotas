@@ -907,10 +907,15 @@ async function doLoginAdmin(){
   if(!pwd){ err.textContent="Ingresá la contraseña."; return; }
   const ok=await verificarAdminPwd(pwd);
   if(!ok){ err.textContent="Contraseña incorrecta."; document.getElementById("adm-pwd").value=""; return; }
-  // Autenticar en Firebase con la cuenta admin real
-  try{ await signInWithEmailAndPassword(auth,"admin@radar.com","Pocket26"); }
-  catch(e){ console.warn("Firebase admin auth falló:",e); }
-  sessionStorage.setItem("radar_admin","1"); location.reload();
+  err.textContent="Autenticando en Firebase...";
+  try{
+    await signInWithEmailAndPassword(auth,"admin@radar.com","Pocket26");
+    sessionStorage.setItem("radar_admin","1");
+    location.reload();
+  } catch(e){
+    err.textContent="Error Firebase: "+e.code+" — verificá que admin@radar.com existe en Firebase Auth con contraseña Pocket26";
+    console.error("Firebase admin auth error:",e);
+  }
 }
 
 async function cerrarSesion(){
@@ -1465,7 +1470,11 @@ function mostrarAdmin(){
   const total=mascotas.length,perdidas=mascotas.filter(m=>m.estado==="Perdida"&&!m.resuelta).length,resueltas=mascotas.filter(m=>m.resuelta).length,encontradas=mascotas.filter(m=>m.estado==="Encontrada"&&!m.resuelta).length;
   const s={panel:"position:fixed;inset:0;background:#0D1810;z-index:88888;overflow-y:auto;font-family:Nunito,sans-serif;",wrap:"max-width:1100px;margin:0 auto;padding:28px 20px 60px;",header:"display:flex;justify-content:space-between;align-items:center;margin-bottom:32px;flex-wrap:wrap;gap:14px;border-bottom:1px solid rgba(255,255,255,.08);padding-bottom:22px;",title:"font-family:'Playfair Display',serif;color:#fff;font-size:2rem;margin:0;",btnExit:"padding:10px 22px;background:#4A7C59;color:#fff;border:none;border-radius:9px;font-family:Nunito,sans-serif;font-weight:800;font-size:.9rem;cursor:pointer;",section:"margin-bottom:36px;",secTitle:"font-family:'Playfair Display',serif;color:#fff;font-size:1.2rem;margin:0 0 14px;padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,.08);",card:"background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:22px;text-align:center;",grid4:"display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:28px;",table:"width:100%;border-collapse:collapse;font-size:.86rem;",th:"padding:11px 14px;text-align:left;color:rgba(255,255,255,.45);font-weight:800;font-size:.72rem;text-transform:uppercase;letter-spacing:.8px;border-bottom:1px solid rgba(255,255,255,.08);",td:"padding:11px 14px;color:rgba(255,255,255,.8);border-bottom:1px solid rgba(255,255,255,.05);vertical-align:middle;",badge:(txt,col)=>`<span style="padding:3px 10px;border-radius:4px;font-size:.72rem;font-weight:800;background:${col}20;color:${col};">${txt}</span>`,btnDel:"padding:5px 12px;background:rgba(192,57,43,.25);color:#ff7a6e;border:none;border-radius:6px;cursor:pointer;font-size:.75rem;font-weight:800;font-family:Nunito,sans-serif;",btnOk:"padding:5px 12px;background:rgba(39,174,96,.25);color:#5edf9a;border:none;border-radius:6px;cursor:pointer;font-size:.75rem;font-weight:800;font-family:Nunito,sans-serif;margin-right:4px;",nodata:"<div style='text-align:center;padding:32px;color:rgba(255,255,255,.2);'>Sin datos aún</div>"};
   const stats=[{ico:"🐾",num:total,lbl:"Publicaciones totales",col:"#4A7C59"},{ico:"🔍",num:perdidas,lbl:"Mascotas perdidas",col:"#C0392B"},{ico:"✅",num:resueltas,lbl:"Casos resueltos",col:"#27AE60"},{ico:"📍",num:encontradas,lbl:"Encontradas",col:"#2980B9"},{ico:"⭐",num:resenas.length,lbl:"Reseñas publicadas",col:"#E67E22"}];
-  let h=`<div id="adm-panel" style="${s.panel}"><div style="${s.wrap}"><div style="${s.header}"><div><h1 style="${s.title}">🛡️ Panel de Administración</h1><p style="color:rgba(255,255,255,.4);font-size:.82rem;margin-top:3px;">RADAR · Firebase Firestore</p></div><button style="${s.btnExit}" onclick="cerrarPanelAdminView()">← Ver página</button></div>`;
+  const fbUser=auth.currentUser;
+  const authInfo=fbUser
+    ? `✅ Auth: ${fbUser.email}`
+    : `⚠️ Sin sesión Firebase — delete no funcionará`;
+  let h=`<div id="adm-panel" style="${s.panel}"><div style="${s.wrap}"><div style="${s.header}"><div><h1 style="${s.title}">🛡️ Panel de Administración</h1><p style="color:rgba(255,255,255,.4);font-size:.82rem;margin-top:3px;">RADAR · Firebase Firestore</p><p style="font-size:.75rem;margin-top:4px;color:${fbUser?'#5edf9a':'#ff7a6e'};">${authInfo}</p></div><button style="${s.btnExit}" onclick="cerrarPanelAdminView()">← Ver página</button></div>`;
   h+=`<div style="${s.grid4}">${stats.map(st=>`<div style="${s.card}"><div style="font-size:1.8rem;margin-bottom:6px;">${st.ico}</div><div style="font-size:2rem;font-weight:800;color:${st.col};font-family:'Playfair Display',serif;">${st.num}</div><div style="font-size:.74rem;color:rgba(255,255,255,.4);font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-top:4px;">${st.lbl}</div></div>`).join("")}</div>`;
   h+=`<div style="${s.section}"><h2 style="${s.secTitle}">🐾 Publicaciones</h2><div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:14px;overflow:auto;">`;
   if(!mascotas.length){ h+=s.nodata; } else {
@@ -1577,7 +1586,10 @@ async function eliminarMascotaAdmin(id){
         await deleteDoc(doc(db,"mascotas",id));
         toast("🗑️ Publicación eliminada.");
         if(_adminPanelAbierto) setTimeout(mostrarAdmin,400);
-      } catch(e){ toast("❌ Error. Revisá las reglas de Firestore."); console.error(e); }
+      } catch(e){
+        const msg=e.code||e.message||"desconocido";
+        toast("❌ Error al eliminar: "+msg);
+        console.error("Delete error:",e); }
     }
   });
 }
