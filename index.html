@@ -526,8 +526,8 @@ footer strong{color:var(--accent2);}
             <span class="upload-emoji">📸</span>
             <p><strong>Tocá para elegir al menos una foto</strong></p>
             <p style="font-size:.76rem;color:#bbb;margin-top:3px">JPG o PNG · Hasta 2 imágenes · Máx 5MB cada una</p>
-            <input type="file" id="p-fotos" accept="image/*" multiple>
           </div>
+          <input type="file" id="p-fotos" accept="image/*" multiple style="display:none;">
           <div class="thumb-row" id="thumbs"></div>
         </div>
       </div>
@@ -1134,14 +1134,14 @@ document.getElementById("p-fotos").addEventListener("change", async function(){
   if(!files.length) return;
 
   const zone = document.getElementById("upload-zone");
-  const originalHtml = zone.innerHTML;
+
+  const ZONA_HTML_ORIGINAL = `<span class="upload-emoji">📸</span><p><strong>Tocá para elegir al menos una foto</strong></p><p style="font-size:.76rem;color:#bbb;margin-top:3px">JPG o PNG · Hasta 2 imágenes · Máx 5MB cada una</p>`;
 
   const restaurarZona = ()=>{
-    zone.innerHTML = originalHtml;
+    zone.innerHTML = ZONA_HTML_ORIGINAL;
     zone.style.pointerEvents = "";
     zone.style.borderColor = "";
     zone.style.background = "";
-    zone.onclick = () => document.getElementById("p-fotos").click();
   };
 
   zone.innerHTML = `<span style="font-size:2rem;display:block;margin-bottom:8px;">🔍</span><p><strong>Verificando imagen...</strong></p><p style="font-size:.76rem;color:#888;margin-top:4px;">La IA está revisando que sea una mascota</p>`;
