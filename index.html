@@ -1109,10 +1109,12 @@ setupHeroAC();
 
 function comprimirImagen(file, cb){
   if(file.size > 5*1024*1024){ toast("⚠️ La imagen supera los 5MB"); cb(null); return; }
+  if(!file.type.startsWith("image/")){ toast("⚠️ El archivo no es una imagen válida"); cb(null); return; }
   const r = new FileReader();
   r.onload = e => {
     const img = new Image();
     img.onload = () => {
+      if(img.width < 50 || img.height < 50){ toast("⚠️ La imagen es demasiado pequeña"); cb(null); return; }
       const MAX=600; let w=img.width, h=img.height;
       if(w>MAX){h=Math.round(h*MAX/w);w=MAX;}
       if(h>MAX){w=Math.round(w*MAX/h);h=MAX;}
@@ -1134,7 +1136,6 @@ document.getElementById("p-fotos").addEventListener("change", async function(){
   if(!files.length) return;
 
   const zone = document.getElementById("upload-zone");
-
   const ZONA_HTML_ORIGINAL = `<span class="upload-emoji">📸</span><p><strong>Tocá para elegir al menos una foto</strong></p><p style="font-size:.76rem;color:#bbb;margin-top:3px">JPG o PNG · Hasta 2 imágenes · Máx 5MB cada una</p>`;
 
   const restaurarZona = ()=>{
@@ -1144,32 +1145,19 @@ document.getElementById("p-fotos").addEventListener("change", async function(){
     zone.style.background = "";
   };
 
-  zone.innerHTML = `<span style="font-size:2rem;display:block;margin-bottom:8px;">🔍</span><p><strong>Verificando imagen...</strong></p><p style="font-size:.76rem;color:#888;margin-top:4px;">La IA está revisando que sea una mascota</p>`;
+  zone.innerHTML = `<span style="font-size:2rem;display:block;margin-bottom:8px;">⏳</span><p><strong>Procesando imagen...</strong></p>`;
   zone.style.pointerEvents = "none";
 
   try{
     for(const f of files){
       if(b64s.length >= 2) break;
       await new Promise(resolve => {
-        comprimirImagen(f, async b64 => {
+        comprimirImagen(f, b64 => {
           if(!b64){ resolve(); return; }
-          try{
-            const esAnimal = await validarImagenConIA(b64);
-            if(esAnimal){
-              b64s.push(b64);
-              renderThumbs();
-              toast("✅ Imagen aceptada");
-            } else {
-              toast("🚫 La imagen no parece ser de una mascota. Subí una foto del animal.");
-              zone.style.borderColor = "#C0392B";
-              zone.style.background = "#FEF0F0";
-              setTimeout(()=>{ zone.style.borderColor=""; zone.style.background=""; }, 2500);
-            }
-          } catch(e){
-            toast("⚠️ No se pudo verificar la imagen, intentá de nuevo.");
-          } finally{
-            resolve();
-          }
+          b64s.push(b64);
+          renderThumbs();
+          toast("✅ Imagen cargada");
+          resolve();
         });
       });
     }
